@@ -1,0 +1,117 @@
+/* ─── PasalBot Design Tokens ─────────────────────────────────────────────── */
+:root {
+  /* Brand */
+  --color-brand:        #F97316;
+  --color-brand-dark:   #EA580C;
+  --color-brand-light:  #FED7AA;
+  --color-danger:       #EF4444;
+
+  /* Surfaces */
+  --color-bg-base:      #0F1117;
+  --color-bg-raised:    #1E2030;
+  --color-bg-sunken:    #13151F;
+  --color-bg-overlay:   #2D3250;
+
+  /* Borders */
+  --color-border:       #2D3250;
+  --color-border-light: #3D4270;
+
+  /* Text */
+  --color-text-primary:   #F9FAFB;
+  --color-text-secondary: #9CA3AF;
+  --color-text-muted:     #6B7280;
+
+  /* Status */
+  --color-pending-bg:    #FEF0E7;
+  --color-pending-text:  #9A3412;
+  --color-confirmed-bg:  #EDE9FF;
+  --color-confirmed-text:#5B21B6;
+  --color-delivered-bg:  #DCFCE7;
+  --color-delivered-text:#14532D;
+  --color-cancelled-bg:  #FEE2E2;
+  --color-cancelled-text:#7F1D1D;
+
+  /* Typography */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body:    'Nunito', 'Segoe UI', sans-serif;
+  --font-mono:    'Fira Code', 'Courier New', monospace;
+
+  /* Spacing */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  20px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-glow-brand: 0 0 30px rgba(249, 115, 22, 0.35);
+  --shadow-glow-sm:    0 0 15px rgba(249, 115, 22, 0.2);
+
+  /* Transitions */
+  --transition-fast:   0.15s ease;
+  --transition-normal: 0.25s ease;
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+input, textarea, select {
+  font-family: var(--font-body);
+  outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-brand) !important;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg-base); }
+::-webkit-scrollbar-thumb { background: var(--color-bg-overlay); border-radius: 3px; }
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.animate-pulse { animation: pulse 2s infinite; }
+.animate-fade-in-up { animation: fadeInUp 0.5s ease forwards; }
