@@ -1,174 +1,181 @@
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { useAuth } from '@/context/AuthContext'
+import { SHOP_THEMES, SHOP_TEMPLATES } from '@/data/mockData'
 import {
   productsGetAll, productsCreate, productsUpdate, productsDelete,
-  ordersGetAll, ordersUpdateStatus,
-  botGetKeywords, botSaveKeywords,
+  ordersGetAll, ordersCreate, ordersSetStatus, ordersGetStats,
+  keywordsGetAll, keywordsSaveAll,
+  categoriesGetAll, categoriesCreate, categoriesUpdate, categoriesDelete,
+  updateShop,
 } from '@/services/api'
-import { SHOP_THEMES } from '@/data/mockData'
 
-// ─── Initial State ────────────────────────────────────────────────────────────
-const initialState = {
-  // Shop meta
-  shop: { name: "Priya's Pasal", slug: 'priya', logo: '🏪', description: 'Handmade & organic products from Kathmandu 🌿' },
-  activeTheme: SHOP_THEMES[0],
-
-  // Data
-  products: [],
-  orders:   [],
-  keywords: [],
-
-  // UI loading flags
-  loading: { products: false, orders: false, keywords: false },
-  error:   null,
-}
-
-// ─── Reducer ──────────────────────────────────────────────────────────────────
-function reducer(state, action) {
-  switch (action.type) {
-    case 'SET_LOADING':
-      return { ...state, loading: { ...state.loading, [action.key]: action.value } }
-
-    case 'SET_ERROR':
-      return { ...state, error: action.error }
-
-    case 'SET_PRODUCTS':
-      return { ...state, products: action.products }
-
-    case 'ADD_PRODUCT':
-      return { ...state, products: [...state.products, action.product] }
-
-    case 'UPDATE_PRODUCT':
-      return {
-        ...state,
-        products: state.products.map((p) =>
-          p.id === action.product.id ? { ...p, ...action.product } : p
-        ),
-      }
-
-    case 'DELETE_PRODUCT':
-      return { ...state, products: state.products.filter((p) => p.id !== action.id) }
-
-    case 'SET_ORDERS':
-      return { ...state, orders: action.orders }
-
-    case 'UPDATE_ORDER_STATUS':
-      return {
-        ...state,
-        orders: state.orders.map((o) =>
-          o.id === action.id ? { ...o, status: action.status } : o
-        ),
-      }
-
-    case 'SET_KEYWORDS':
-      return { ...state, keywords: action.keywords }
-
-    case 'SET_THEME':
-      return { ...state, activeTheme: action.theme }
-
-    case 'UPDATE_SHOP':
-      return { ...state, shop: { ...state.shop, ...action.patch } }
-
-    default:
-      return state
-  }
-}
-
-// ─── Context ──────────────────────────────────────────────────────────────────
 const ShopContext = createContext(null)
 
+// "All" is always the first virtual category — never stored in DB
+const ALL_CAT = { _id: 'all', label: 'All', emoji: '🛍️' }
+
 export function ShopProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const { user, updateUser } = useAuth()
 
-  // ── Bootstrap ──────────────────────────────────────────────────────────────
+  const [products,   setProducts]   = useState([])
+  const [orders,     setOrders]     = useState([])
+  const [keywords,   setKeywords]   = useState([])
+  const [categories, setCategories] = useState([])
+  const [stats,      setStats]      = useState({ total: 0, pending: 0, delivered: 0, revenue: 0, weekOrders: 0 })
+  const [loading,    setLoading]    = useState(true)
+  const [error,      setError]      = useState('')
+  const [previewShop, setPreviewShop] = useState(null)
+
+  const activeTheme    = SHOP_THEMES.find(t => t.id === user?.activeTheme)    || SHOP_THEMES[0]
+  const activeTemplate = SHOP_TEMPLATES.find(t => t.id === user?.activeTemplate) || SHOP_TEMPLATES[0]
+
+  // Load all shop data when user logs in
   useEffect(() => {
-    async function bootstrap() {
-      dispatch({ type: 'SET_LOADING', key: 'products', value: true })
-      dispatch({ type: 'SET_LOADING', key: 'orders',   value: true })
-      dispatch({ type: 'SET_LOADING', key: 'keywords', value: true })
-      try {
-        const [products, orders, keywords] = await Promise.all([
-          productsGetAll(),
-          ordersGetAll(),
-          botGetKeywords(),
-        ])
-        dispatch({ type: 'SET_PRODUCTS', products })
-        dispatch({ type: 'SET_ORDERS',   orders   })
-        dispatch({ type: 'SET_KEYWORDS', keywords })
-      } catch (err) {
-        dispatch({ type: 'SET_ERROR', error: err.message })
-      } finally {
-        dispatch({ type: 'SET_LOADING', key: 'products', value: false })
-        dispatch({ type: 'SET_LOADING', key: 'orders',   value: false })
-        dispatch({ type: 'SET_LOADING', key: 'keywords', value: false })
-      }
+    if (!user) {
+      // Only set loading to false if we're NOT currently waiting for auth
+      // This prevents "Empty State" flicker on refresh
+      setLoading(false)
+      return
     }
-    bootstrap()
+
+    setLoading(true)
+    Promise.all([
+      productsGetAll(),
+      ordersGetAll(),
+      keywordsGetAll(),
+      ordersGetStats(),
+      categoriesGetAll(),
+    ])
+      .then(([prods, ords, kws, st, cats]) => {
+        setProducts(prods)
+        setOrders(ords)
+        setKeywords(kws)
+        setStats(st)
+        setCategories(cats)
+      })
+      .catch(() => setError('Failed to load shop data. Please refresh.'))
+      .finally(() => setLoading(false))
+  }, [user?.id])
+
+  // ── Shop settings ──────────────────────────────────────────────────────────
+  const setTheme = useCallback(async (theme) => {
+    const updated = await updateShop({ activeTheme: theme.id })
+    updateUser(updated)
+  }, [updateUser])
+
+  const setTemplate = useCallback(async (template) => {
+    const updated = await updateShop({ activeTemplate: template.id })
+    updateUser(updated)
+  }, [updateUser])
+
+  // ── Products ───────────────────────────────────────────────────────────────
+  const addProduct = useCallback(async (data) => {
+    const product = await productsCreate(data)
+    setProducts(prev => [product, ...prev])
   }, [])
 
-  // ── Actions ────────────────────────────────────────────────────────────────
-  const addProduct = useCallback(async (productData) => {
-    const product = await productsCreate(productData)
-    dispatch({ type: 'ADD_PRODUCT', product })
-    return product
-  }, [])
-
-  const updateProduct = useCallback(async (id, patch) => {
-    const product = await productsUpdate(id, patch)
-    dispatch({ type: 'UPDATE_PRODUCT', product: { id, ...patch } })
-    return product
-  }, [])
+  const toggleProductVisibility = useCallback(async (id) => {
+    const product = products.find(p => p._id === id)
+    if (!product) return
+    const updated = await productsUpdate(id, { visible: !product.visible })
+    setProducts(prev => prev.map(p => p._id === id ? updated : p))
+  }, [products])
 
   const deleteProduct = useCallback(async (id) => {
     await productsDelete(id)
-    dispatch({ type: 'DELETE_PRODUCT', id })
+    setProducts(prev => prev.filter(p => p._id !== id))
   }, [])
 
-  const toggleProductVisibility = useCallback((id) => {
-    const product = state.products.find((p) => p.id === id)
-    if (!product) return
-    updateProduct(id, { visible: !product.visible })
-  }, [state.products, updateProduct])
+  // ── Orders ─────────────────────────────────────────────────────────────────
+  const addOrder = useCallback(async (data) => {
+    const order = await ordersCreate(data)
+    setOrders(prev => [order, ...prev])
+    setStats(prev => ({ ...prev, total: prev.total + 1, pending: prev.pending + 1 }))
+    return order
+  }, [])
 
   const updateOrderStatus = useCallback(async (id, status) => {
-    await ordersUpdateStatus(id, status)
-    dispatch({ type: 'UPDATE_ORDER_STATUS', id, status })
+    const updated = await ordersSetStatus(id, status)
+    setOrders(prev => prev.map(o => o._id === id ? updated : o))
+    ordersGetStats().then(setStats).catch(() => {})
   }, [])
 
-  const saveKeywords = useCallback(async (keywords) => {
-    const saved = await botSaveKeywords(keywords)
-    dispatch({ type: 'SET_KEYWORDS', keywords: saved })
+  // ── Keywords ───────────────────────────────────────────────────────────────
+  const saveKeywords = useCallback(async (list) => {
+    const saved = await keywordsSaveAll(list)
+    setKeywords(saved)
   }, [])
 
-  const setTheme = useCallback((theme) => {
-    dispatch({ type: 'SET_THEME', theme })
+  // ── Categories ─────────────────────────────────────────────────────────────
+  const addCategory = useCallback(async (label, emoji = '🏷️') => {
+    const cat = await categoriesCreate({ label, emoji })
+    setCategories(prev => [...prev, cat])
+    return cat
   }, [])
 
-  const updateShop = useCallback((patch) => {
-    dispatch({ type: 'UPDATE_SHOP', patch })
+  const updateCategory = useCallback(async (id, data) => {
+    const updated = await categoriesUpdate(id, data)
+    setCategories(prev => prev.map(c => c._id === id ? updated : c))
   }, [])
 
-  // ── Derived ────────────────────────────────────────────────────────────────
-  const derived = {
-    totalRevenue:    state.orders.filter(o => o.status === 'Delivered').reduce((s, o) => s + o.amount, 0),
-    pendingCount:    state.orders.filter(o => o.status === 'Pending').length,
-    lowStockProducts: state.products.filter(p => p.stock <= 9),
-    visibleProducts: state.products.filter(p => p.visible),
+  const deleteCategoryById = useCallback(async (id) => {
+    await categoriesDelete(id)
+    setCategories(prev => prev.filter(c => c._id !== id))
+  }, [])
+
+  // "All" prepended as virtual entry for UI filtering
+  const allCategories = [ALL_CAT, ...categories]
+
+  const visibleProducts = products.filter(p => p.visible)
+  const baseShop = user?.shop || { 
+    name: 'My Pasal', 
+    slug: '', 
+    logo: '🏪', 
+    description: '',
+    location: '',
+    phone: '',
+    deliveryTime: '1-3 days',
+    deliveryAreas: 'Inside Kathmandu Valley',
+    paymentMethods: ['COD'],
+    returnPolicy: 'Return/exchange within 3 days',
+    howToOrder: 'Order via the shop bot or DM us',
+    businessHours: '10 AM - 8 PM',
+    socialLinks: { facebook: '', instagram: '' },
+    freeDeliveryThreshold: 0
   }
 
-  const value = {
-    ...state,
-    ...derived,
-    addProduct,
-    updateProduct,
-    deleteProduct,
-    toggleProductVisibility,
-    updateOrderStatus,
-    saveKeywords,
-    setTheme,
-    updateShop,
-  }
+  const shop = previewShop || baseShop
 
-  return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>
+  return (
+    <ShopContext.Provider value={{
+      // shop identity
+      shop, activeTheme, setTheme, activeTemplate, setTemplate,
+      setPreviewShop,
+      // products
+      products, visibleProducts, addProduct, toggleProductVisibility, deleteProduct,
+      // orders
+      orders, addOrder, updateOrderStatus,
+      // keywords
+      keywords, saveKeywords,
+      // categories
+      categories: allCategories,   // includes the virtual "All" at index 0
+      addCategory, updateCategory, deleteCategory: deleteCategoryById,
+      // stats + loading
+      stats, loading, error,
+    }}>
+      {error && (
+        <div style={{
+          position: 'fixed', bottom: 20, right: 20, background: '#fee2e2',
+          color: '#991b1b', padding: '12px 20px', borderRadius: 8,
+          border: '1px solid #f87171', fontSize: 14, fontWeight: 600, zIndex: 9999,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+        }}>
+          ⚠️ {error}
+        </div>
+      )}
+      {children}
+    </ShopContext.Provider>
+  )
 }
 
 export function useShop() {

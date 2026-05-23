@@ -19,7 +19,7 @@ export function ProductCard({ product }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <span style={{ fontSize: 40 }}>{product.image}</span>
         <button
-          onClick={() => toggleProductVisibility(product.id)}
+          onClick={() => toggleProductVisibility(product._id)}
           style={{
             background:  product.visible ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
             color:       product.visible ? '#22C55E' : '#EF4444',
@@ -51,7 +51,7 @@ export function ProductCard({ product }) {
       </div>
 
       <button
-        onClick={() => deleteProduct(product.id)}
+        onClick={() => deleteProduct(product._id)}
         style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)', borderRadius: 'var(--radius-sm)', padding: '5px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-body)', marginTop: 4 }}
       >
         Remove

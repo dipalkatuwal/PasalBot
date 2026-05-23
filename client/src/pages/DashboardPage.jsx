@@ -1,30 +1,59 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useShop } from '@/context/ShopContext'
+import { useAuth } from '@/context/AuthContext'
 import { PageLayout } from '@/components/layout/PageLayout'
-import { StatCard, Card, StatusBadge, SectionHeader } from '@/components/ui/index.jsx'
+import { StatCard, Card, StatusBadge, SectionHeader, Toast } from '@/components/ui/index.jsx'
 import { Button } from '@/components/ui/Button'
 import { formatNPR, formatDate } from '@/utils/formatters'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { shop, products, orders, lowStockProducts, totalRevenue, pendingCount } = useShop()
+  const { user } = useAuth()
+  const { shop, products, orders, stats, loading } = useShop()
+  const [toast, setToast] = useState('')
 
-  const recentOrders = [...orders].slice(0, 5)
+  const recentOrders     = [...orders].slice(0, 5)
+  const liveProducts     = products.filter(p => p.visible)
+  const lowStockProducts = products.filter(p => p.stock <= 5 && p.visible)
 
-  const stats = [
-    { label: 'Total Orders',    value: orders.length,          icon: '📦', change: '+12% this week', up: true  },
-    { label: 'Revenue (May)',   value: formatNPR(totalRevenue), icon: '💰', change: '+23% this week', up: true  },
-    { label: 'Products Live',   value: `${products.filter(p => p.visible).length} / ${products.length}`, icon: '🛍️', change: null, up: true },
-    { label: 'Pending Orders',  value: pendingCount,            icon: '⏳', change: pendingCount > 0 ? 'Needs attention' : 'All clear', up: pendingCount === 0 },
+  const greeting = () => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Good morning'
+    if (h < 17) return 'Good afternoon'
+    return 'Good evening'
+  }
+
+  const copyShopLink = () => {
+    const origin = window.location.origin
+    const url = `${origin}/shop/${shop.slug}`
+    navigator.clipboard?.writeText(url)
+      .then(() => setToast('Shop link copied!'))
+      .catch(() => setToast('Failed to copy link'))
+  }
+
+  const statCards = [
+    { label: 'Total Orders',   value: stats.total,           icon: '📦', change: `${stats.weekOrders} this week`, up: true },
+    { label: 'Revenue',        value: formatNPR(stats.revenue), icon: '💰', change: stats.delivered > 0 ? `${stats.delivered} delivered` : null, up: true },
+    { label: 'Products Live',  value: `${liveProducts.length} / ${products.length}`, icon: '🛍️', change: null },
+    { label: 'Pending Orders', value: stats.pending,          icon: '⏳', change: stats.pending > 0 ? 'Needs attention' : 'All clear', up: stats.pending === 0 },
   ]
+
+  if (loading) return (
+    <PageLayout>
+      <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)', fontSize: 14 }}>
+        Loading your dashboard…
+      </div>
+    </PageLayout>
+  )
 
   return (
     <PageLayout>
-      {/* Page header */}
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, margin: 0 }}>
-            Good morning, <span style={{ color: 'var(--color-brand)' }}>{shop.name}</span> 👋
+            {greeting()}, <span style={{ color: 'var(--color-brand)' }}>{shop.name}</span> 👋
           </h1>
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14, margin: '4px 0 0' }}>
             {new Date().toLocaleDateString('en-NP', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -32,13 +61,13 @@ export default function DashboardPage() {
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <Button variant="secondary" onClick={() => navigate('/products')}>+ Add Product</Button>
-          <Button onClick={() => navigator.clipboard?.writeText(`pasalbot.com/shop/${shop.slug}`)}>🔗 Copy Shop Link</Button>
+          <Button onClick={copyShopLink}>🔗 Copy Shop Link</Button>
         </div>
       </div>
 
-      {/* Stats row */}
+      {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.75rem' }}>
-        {stats.map(s => <StatCard key={s.label} {...s} />)}
+        {statCards.map(s => <StatCard key={s.label} {...s} />)}
       </div>
 
       {/* Main grid */}
@@ -50,7 +79,7 @@ export default function DashboardPage() {
             action={<button onClick={() => navigate('/orders')} style={{ background: 'none', border: 'none', color: 'var(--color-brand)', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-body)' }}>View all →</button>}
           />
           {recentOrders.map((o, i) => (
-            <div key={o.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: i < recentOrders.length - 1 ? '1px solid var(--color-border)' : 'none', gap: '0.5rem' }}>
+            <div key={o._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: i < recentOrders.length - 1 ? '1px solid var(--color-border)' : 'none', gap: '0.5rem' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>{o.customer}</p>
                 <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.product}</p>
@@ -61,14 +90,14 @@ export default function DashboardPage() {
               </div>
             </div>
           ))}
-          {recentOrders.length === 0 && <p style={{ color: 'var(--color-text-muted)', fontSize: 14, margin: 0 }}>No orders yet.</p>}
+          {recentOrders.length === 0 && <p style={{ color: 'var(--color-text-muted)', fontSize: 14, margin: 0 }}>No orders yet. Share your shop link to get started!</p>}
         </Card>
 
         {/* Low Stock */}
         <Card>
           <SectionHeader title="⚠️ Low Stock" />
           {lowStockProducts.slice(0, 5).map(p => (
-            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--color-border)' }}>
+            <div key={p._id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--color-border)' }}>
               <span style={{ fontSize: 24 }}>{p.image}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ margin: '0 0 4px', fontWeight: 600, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</p>
@@ -87,11 +116,16 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Bot Activity */}
+      {/* Bot Activity — real order data */}
       <Card style={{ marginTop: '1.5rem' }}>
-        <SectionHeader title="🤖 Bot Activity Today" />
+        <SectionHeader title="📊 Shop Summary" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem' }}>
-          {[['23', 'Queries Handled'], ['7', 'Orders Started'], ['4', 'Orders Completed'], ['94%', 'Response Rate']].map(([v, l]) => (
+          {[
+            [stats.total,     'Total Orders'],
+            [stats.pending,   'Pending'],
+            [stats.delivered, 'Delivered'],
+            [formatNPR(stats.revenue, false), 'Revenue (NPR)'],
+          ].map(([v, l]) => (
             <div key={l} style={{ background: 'var(--color-bg-base)', borderRadius: 'var(--radius-md)', padding: '1rem', textAlign: 'center' }}>
               <p style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 700, color: 'var(--color-brand)', margin: '0 0 4px' }}>{v}</p>
               <p style={{ color: 'var(--color-text-muted)', fontSize: 12, margin: 0 }}>{l}</p>
@@ -99,6 +133,8 @@ export default function DashboardPage() {
           ))}
         </div>
       </Card>
+
+      <Toast message={toast} onClear={() => setToast('')} />
     </PageLayout>
   )
 }

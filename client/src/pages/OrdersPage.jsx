@@ -7,7 +7,7 @@ import { ORDER_STATUSES } from '@/data/mockData'
 import { formatNPR } from '@/utils/formatters'
 
 export default function OrdersPage() {
-  const { orders } = useShop()
+  const { orders, loading } = useShop()
   const [filter, setFilter] = useState('All')
 
   const filtered = useMemo(() =>
@@ -21,6 +21,14 @@ export default function OrdersPage() {
   )
 
   const FILTERS = ['All', ...ORDER_STATUSES]
+
+  if (loading) return (
+    <PageLayout>
+      <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)', fontSize: 14 }}>
+        Loading orders…
+      </div>
+    </PageLayout>
+  )
 
   return (
     <PageLayout>
@@ -52,7 +60,7 @@ export default function OrdersPage() {
           <span>ORDER</span><span>CUSTOMER</span><span>AMOUNT</span><span>DATE</span><span>STATUS</span><span>ACTION</span>
         </div>
         {filtered.length > 0
-          ? filtered.map(o => <OrderRow key={o.id} order={o} />)
+          ? filtered.map(o => <OrderRow key={o._id} order={o} />)
           : <EmptyState icon="📭" title="No orders" desc={`No ${filter.toLowerCase()} orders found.`} />
         }
       </Card>

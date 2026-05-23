@@ -1,82 +1,57 @@
-/**
- * api.js – Service layer
- *
- * All functions currently return mock data (simulated latency included).
- * To wire up a real backend, replace the body of each function with a
- * `fetch` call to the corresponding REST endpoint. The calling code
- * (hooks / context) does NOT need to change.
- *
- * Naming convention: <resource><Action>  e.g. productsGetAll, ordersCreate
- */
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
-import {
-  INITIAL_PRODUCTS,
-  INITIAL_ORDERS,
-  INITIAL_BOT_KEYWORDS,
-} from '@/data/mockData'
+// ── Token helpers ────────────────────────────────────────────────────────────
+export function getToken()   { return localStorage.getItem('pb_token') }
+export function setToken(t)  { localStorage.setItem('pb_token', t) }
+export function clearToken() { localStorage.removeItem('pb_token') }
 
-const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms))
+// ── Core fetch wrapper ───────────────────────────────────────────────────────
+async function request(path, options = {}) {
+  const token = getToken()
+  const headers = { 'Content-Type': 'application/json', ...options.headers }
+  if (token) headers['Authorization'] = `Bearer ${token}`
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-// Future: POST /api/auth/login
-export async function authLogin({ email, password }) {
-  await delay(400)
-  return { token: 'mock-jwt-token', shopId: 'shop_priya', shopName: "Priya's Pasal" }
+  const res = await fetch(`${BASE}${path}`, { ...options, headers })
+  const data = await res.json().catch(() => ({}))
+
+  if (!res.ok) {
+    const err = new Error(data.message || 'Something went wrong')
+    err.status = res.status
+    throw err
+  }
+  return data
 }
 
-// Future: POST /api/auth/register
-export async function authRegister(payload) {
-  await delay(500)
-  return { token: 'mock-jwt-token', shopId: 'shop_new', shopName: payload.shopName }
-}
+// ── Auth ─────────────────────────────────────────────────────────────────────
+export const authRegister = (email, password, shopName) =>
+  request('/auth/register', { method: 'POST', body: JSON.stringify({ email, password, shopName }) })
 
-// ─── Products ─────────────────────────────────────────────────────────────────
-// Future: GET /api/products?shopId=
-export async function productsGetAll() {
-  await delay(200)
-  return [...INITIAL_PRODUCTS]
-}
+export const authLogin = (email, password) =>
+  request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
 
-// Future: POST /api/products
-export async function productsCreate(product) {
-  await delay(300)
-  return { ...product, id: Date.now() }
-}
+export const authGetMe   = ()        => request('/auth/me')
+export const updateShop  = (updates) => request('/auth/shop', { method: 'PATCH', body: JSON.stringify(updates) })
 
-// Future: PATCH /api/products/:id
-export async function productsUpdate(id, patch) {
-  await delay(200)
-  return { id, ...patch }
-}
+// ── Products ──────────────────────────────────────────────────────────────────
+export const productsGetAll = ()          => request('/products')
+export const productsCreate = (data)      => request('/products', { method: 'POST', body: JSON.stringify(data) })
+export const productsUpdate = (id, data)  => request(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
+export const productsDelete = (id)        => request(`/products/${id}`, { method: 'DELETE' })
 
-// Future: DELETE /api/products/:id
-export async function productsDelete(id) {
-  await delay(200)
-  return { id }
-}
+// ── Orders ───────────────────────────────────────────────────────────────────
+export const ordersGetAll    = ()           => request('/orders')
+export const ordersCreate    = (data)       => request('/orders', { method: 'POST', body: JSON.stringify(data) })
+export const ordersSetStatus = (id, status) => request(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) })
+export const ordersGetStats  = ()           => request('/orders/stats')
 
-// ─── Orders ───────────────────────────────────────────────────────────────────
-// Future: GET /api/orders?shopId=
-export async function ordersGetAll() {
-  await delay(200)
-  return [...INITIAL_ORDERS]
-}
+// ── Keywords ─────────────────────────────────────────────────────────────────
+export const keywordsGetAll  = ()      => request('/keywords')
+export const keywordsSaveAll = (list)  => request('/keywords', { method: 'PUT', body: JSON.stringify(list) })
+export const keywordsCreate  = (data)  => request('/keywords', { method: 'POST', body: JSON.stringify(data) })
+export const keywordsDelete  = (id)    => request(`/keywords/${id}`, { method: 'DELETE' })
 
-// Future: PATCH /api/orders/:id
-export async function ordersUpdateStatus(id, status) {
-  await delay(200)
-  return { id, status }
-}
-
-// ─── Bot ──────────────────────────────────────────────────────────────────────
-// Future: GET /api/bot/keywords?shopId=
-export async function botGetKeywords() {
-  await delay(200)
-  return [...INITIAL_BOT_KEYWORDS]
-}
-
-// Future: PUT /api/bot/keywords
-export async function botSaveKeywords(keywords) {
-  await delay(300)
-  return keywords
-}
+// ── Categories ────────────────────────────────────────────────────────────────
+export const categoriesGetAll  = ()          => request('/categories')
+export const categoriesCreate  = (data)      => request('/categories', { method: 'POST', body: JSON.stringify(data) })
+export const categoriesUpdate  = (id, data)  => request(`/categories/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
+export const categoriesDelete  = (id)        => request(`/categories/${id}`, { method: 'DELETE' })

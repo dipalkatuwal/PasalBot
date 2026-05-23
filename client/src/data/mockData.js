@@ -36,6 +36,34 @@ export const INITIAL_BOT_KEYWORDS = [
   },
 ]
 
+// ─── Shop Templates ───────────────────────────────────────────────────────────
+export const SHOP_TEMPLATES = [
+  {
+    id:      'grid',
+    name:    'Market Grid',
+    desc:    'Classic product grid — familiar and easy to browse',
+    preview: '▦',
+    features: ['2–4 column responsive grid', 'Square product cards', 'Great for many products'],
+  },
+  {
+    id:      'boutique',
+    name:    'Boutique List',
+    desc:    'Horizontal list view — great for showcasing detail',
+    preview: '☰',
+    features: ['Full-width horizontal cards', 'More product detail visible', 'Great for fewer, premium items'],
+  },
+]
+
+// ─── Default Categories (used as fallback before API loads) ──────────────────
+export const INITIAL_CATEGORIES = [
+  { id: 'all',         label: 'All',         emoji: '🛍️' },
+  { id: 'accessories', label: 'Accessories', emoji: '👜' },
+  { id: 'food',        label: 'Food',        emoji: '🍯' },
+  { id: 'clothing',    label: 'Clothing',    emoji: '👘' },
+  { id: 'home',        label: 'Home',        emoji: '🏠' },
+  { id: 'general',     label: 'General',     emoji: '📦' },
+]
+
 // ─── Shop Themes ─────────────────────────────────────────────────────────────
 export const SHOP_THEMES = [
   {

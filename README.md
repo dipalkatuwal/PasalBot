@@ -1,124 +1,141 @@
-# 🏪 PasalBot — Frontend v1.1
+# 🏪 PasalBot
 
-> Smart Shop Assistant · Chat, Sell & Manage  
-> Built for Nepali social media sellers on Facebook & Instagram.
+A full-stack shop-bot platform for Nepali Facebook/Instagram sellers. Automates DM replies, manages products and orders, and gives sellers a real-time dashboard.
 
----
+## Stack
 
-## Tech Stack
-
-| Layer       | Choice                          |
-|-------------|---------------------------------|
-| Framework   | React 18 + Vite 5               |
-| Routing     | React Router v6                 |
-| State       | Context API + useReducer        |
-| Styling     | CSS Modules + CSS Variables     |
-| Data        | Mock layer (API-ready)          |
-| Deployment  | Vercel (recommended)            |
+- **Frontend**: React 18 + Vite + React Router
+- **Backend**: Node.js + Express
+- **Database**: MongoDB 
+- **Auth**: JWT (httpOnly-ready)
 
 ---
 
-## Getting Started
+## Quick Start
+
+### 1. Clone & install
+```bash
+git clone <your-repo>
+cd client
+pnpm run install
+pnpm run dev
+```
 
 ```bash
-# 1. Enter client directory
-cd client
-
-# 2. Install dependencies
-pnpm install
-
-# 3. Start dev server (http://localhost:3000)
+cd server
+pnpm run install
 pnpm run dev
-
-# 4. Build for production
-pnpm run build
-
-# 5. Preview production build
-pnpm run preview
 ```
 
----
+### 2. Configure environment
 
-## Project Structure
-
+**Server** — copy and fill in:
+```bash
+cp server/.env.example server/.env
 ```
-src/
-├── components/
-│   ├── ui/                  # Reusable primitives (Button, Card, Badge …)
-│   ├── layout/              # Navbar, PageLayout
-│   └── features/
-│       ├── landing/         # Hero, ProblemSolution, FeaturesGrid …
-│       ├── dashboard/       # (page-level, logic lives in page)
-│       ├── products/        # ProductCard, ProductForm
-│       ├── orders/          # OrderRow
-│       ├── bot/             # BotChat, KeywordEditor
-│       ├── themes/          # ThemeCard
-│       └── shop/            # DemoShop modal
-├── context/
-│   ├── ShopContext.jsx      # Global shop state + actions (useReducer)
-│   └── UIContext.jsx        # UI state (modals, etc.)
-├── data/
-│   └── mockData.js          # All mock constants (products, orders …)
-├── hooks/
-│   ├── useBot.js            # Bot chat logic (keyword matching + order flow)
-│   └── useIntersection.js   # Scroll-reveal helper
-├── pages/                   # One file per route
-├── services/
-│   └── api.js               # ⚡ Swap mock bodies for real fetch() calls here
-├── styles/
-│   └── globals.css          # Design tokens (CSS variables) + reset
-└── utils/
-    └── formatters.js        # formatNPR, formatDate, generateId …
-```
-
----
-
-## Connecting a Real Backend
-
-All API calls are isolated in `src/services/api.js`.  
-Each function has a comment like:
-
-```js
-// Future: GET /api/products?shopId=
-export async function productsGetAll() { … }
-```
-
-To connect to a real backend:
-1. Replace the function body with a `fetch` (or `axios`) call.
-2. Add your base URL to a `.env` file: `VITE_API_URL=https://api.yourbackend.com`
-3. No changes needed in Context, hooks, or components.
-
----
-
-## Environment Variables
 
 ```env
-# .env.example
-VITE_API_URL=http://localhost:5000
-VITE_SHOP_SLUG=demo
+PORT=5000
+MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/pasalbot
+JWT_SECRET=your_long_random_secret_here
+JWT_EXPIRES_IN=7d
+NODE_ENV=development
+CLIENT_URL=http://localhost:3000
 ```
 
----
-
-## Deployment (Vercel)
-
+**Client** — copy and fill in:
 ```bash
-npm run build
-# Upload /dist to Vercel, or connect GitHub repo for auto-deploy.
+cp client/.env.example client/.env
 ```
 
-Add a `vercel.json` for SPA routing:
-```json
-{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
+```env
+VITE_API_URL=http://localhost:5000/api
 ```
+
+### 3. Run in development
+```bash
+pnpm run dev
+```
+- Frontend: http://localhost:3000
+- Backend: http://localhost:5000
 
 ---
 
-## Roadmap (Post-MVP)
+## Pages & Navigation
 
-- [ ] Auth (JWT login / register)
-- [ ] Real MongoDB backend (Node + Express)
-- [ ] Image upload for products (Cloudinary)
-- [ ] WhatsApp / Messenger bot integration
-- [ ] Analytics dashboard with charts
-- [ ] Multi-language: Nepali / English toggle
+| Route | Auth | Description |
+|-------|------|-------------|
+| `/` | ❌ | Landing page |
+| `/auth` | ❌ | Login / Register |
+| `/dashboard` | ✅ | Stats, recent orders, low-stock alerts |
+| `/products` | ✅ | Add, edit, delete products |
+| `/orders` | ✅ | View and update order status |
+| `/bot` | ✅ | Configure bot keyword triggers |
+| `/themes` | ✅ | Pick and preview shop themes |
+| `/shop-setup` | ✅ | Edit shop info, delivery, payment, social links |
+| `/shop/:slug` | ❌ | Public-facing shop page (shareable link) |
+
+---
+
+## API Endpoints
+
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | `/api/auth/register` | ❌ | Create account + shop |
+| POST | `/api/auth/login` | ❌ | Get JWT |
+| GET | `/api/auth/me` | ✅ | Current user |
+| PATCH | `/api/auth/shop` | ✅ | Update shop settings/theme (slug conflict-checked) |
+| GET | `/api/products` | ✅ | List products |
+| POST | `/api/products` | ✅ | Add product |
+| PATCH | `/api/products/:id` | ✅ | Update product |
+| DELETE | `/api/products/:id` | ✅ | Delete product |
+| GET | `/api/orders` | ✅ | List orders |
+| POST | `/api/orders` | ✅ | Create order |
+| PATCH | `/api/orders/:id/status` | ✅ | Update order status |
+| GET | `/api/orders/stats` | ✅ | Dashboard stats |
+| GET | `/api/keywords` | ✅ | List bot keywords |
+| PUT | `/api/keywords` | ✅ | Save all keywords |
+| POST | `/api/keywords` | ✅ | Add one keyword |
+| DELETE | `/api/keywords/:id` | ✅ | Delete keyword |
+| GET | `/api/shop/:slug` | ❌ | Full public shop data (products, keywords, categories, all shop fields) |
+
+---
+
+## Production Deployment
+
+### MongoDB Atlas
+1. Create a free cluster at [mongodb.com/atlas](https://mongodb.com/atlas)
+2. Add your server IP to Network Access
+3. Copy the connection string into `server/.env`
+
+### Render (recommended for backend)
+1. Create a new Web Service pointing to `/server`
+2. Set all env vars from `server/.env.example`
+3. Build command: `pnpm install`
+4. Start command: `pnpm start`
+
+### Vercel (frontend)
+1. Import the repo, set root to `/client`
+2. Set `VITE_API_URL` to your Render backend URL
+3. Deploy
+
+---
+
+## Changelog
+
+### v1.1
+- **Fix:** `GET /api/shop/:slug` now returns all shop fields — location, phone, delivery info, payment methods, return policy, business hours, and social links. Previously only name, slug, logo, and description were exposed, causing the public shop page to show fallback values even after a seller had filled everything in.
+- **Fix:** `PATCH /api/auth/shop` now regenerates the shop slug when the name changes and checks for conflicts before saving. Previously, renaming a shop to a taken name would throw an unhandled Mongoose duplicate key error.
+- **Fix:** `/themes` route and `ThemesPage` are now reachable. The page existed but was never added to the router or the navbar.
+- **Fix:** The shop preview (`DemoShop`) no longer unmounts when closed. It is now hidden with CSS so chat state — messages, order step, partial order data — persists when navigating between dashboard pages.
+
+---
+
+## Roadmap
+
+- [ ] Facebook Messenger webhook integration
+- [ ] Instagram Graph API DM automation
+- [ ] Product image upload (Cloudinary)
+- [ ] Nepali (Devanagari) language support
+- [ ] Vitest unit tests for `useBot` and ShopContext
+- [ ] Customer profiles from phone numbers

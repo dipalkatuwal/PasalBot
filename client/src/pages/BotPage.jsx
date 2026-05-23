@@ -1,9 +1,20 @@
+import { useShop } from '@/context/ShopContext'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { SectionHeader } from '@/components/ui/index.jsx'
 import { BotChat } from '@/components/features/bot/BotChat'
 import { KeywordEditor } from '@/components/features/bot/KeywordEditor'
 
 export default function BotPage() {
+  const { loading } = useShop()
+
+  if (loading) return (
+    <PageLayout>
+      <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)', fontSize: 14 }}>
+        Loading bot settings…
+      </div>
+    </PageLayout>
+  )
+
   return (
     <PageLayout>
       <SectionHeader title="🤖 Bot Builder" />

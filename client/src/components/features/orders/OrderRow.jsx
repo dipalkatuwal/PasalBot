@@ -16,7 +16,7 @@ export function OrderRow({ order }) {
       flexWrap:      'wrap',
     }}>
       <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)', fontSize: 12, minWidth: 80 }}>
-        {order.id}
+        {order._id}
       </span>
 
       <div style={{ flex: 1, minWidth: 160 }}>
@@ -34,7 +34,7 @@ export function OrderRow({ order }) {
 
       <select
         value={order.status}
-        onChange={e => updateOrderStatus(order.id, e.target.value)}
+        onChange={e => updateOrderStatus(order._id, e.target.value)}
         style={{
           background:   'var(--color-bg-base)',
           color:        'var(--color-text-primary)',
@@ -46,7 +46,7 @@ export function OrderRow({ order }) {
           fontFamily:   'var(--font-body)',
         }}
       >
-        {ORDER_STATUSES.map(s => <option key={s}>{s}</option>)}
+        {ORDER_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
       </select>
     </div>
   )

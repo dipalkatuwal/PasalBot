@@ -25,7 +25,7 @@ export function KeywordEditor() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {local.map(kw => (
-        <div key={kw.id} style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '1rem' }}>
+        <div key={kw._id} style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <span style={{ background: 'rgba(249,115,22,0.15)', color: 'var(--color-brand)', borderRadius: 'var(--radius-sm)', padding: '3px 10px', fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
               {kw.trigger}
@@ -35,7 +35,7 @@ export function KeywordEditor() {
           <Textarea
             rows={2}
             value={kw.reply}
-            onChange={e => updateReply(kw.id, e.target.value)}
+            onChange={e => updateReply(kw._id, e.target.value)}
           />
         </div>
       ))}
