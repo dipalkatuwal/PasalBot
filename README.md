@@ -121,16 +121,6 @@ pnpm run dev
 
 ---
 
-## Changelog
-
-### v1.1
-- **Fix:** `GET /api/shop/:slug` now returns all shop fields — location, phone, delivery info, payment methods, return policy, business hours, and social links. Previously only name, slug, logo, and description were exposed, causing the public shop page to show fallback values even after a seller had filled everything in.
-- **Fix:** `PATCH /api/auth/shop` now regenerates the shop slug when the name changes and checks for conflicts before saving. Previously, renaming a shop to a taken name would throw an unhandled Mongoose duplicate key error.
-- **Fix:** `/themes` route and `ThemesPage` are now reachable. The page existed but was never added to the router or the navbar.
-- **Fix:** The shop preview (`DemoShop`) no longer unmounts when closed. It is now hidden with CSS so chat state — messages, order step, partial order data — persists when navigating between dashboard pages.
-
----
-
 ## Roadmap
 
 - [ ] Facebook Messenger webhook integration

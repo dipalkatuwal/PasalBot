@@ -17,11 +17,17 @@ const PORT = process.env.PORT || 5000
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }))
 app.use(express.json())
 
-// Rate limiting — stricter on auth
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { message: 'Too many requests, try again later.' } })
-const apiLimiter  = rateLimit({ windowMs: 15 * 60 * 1000, max: 200 })
+// Rate limiting — strict only on login/register to prevent brute force,
+// generous on /me since it's called on every page load
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { message: 'Too many login attempts, try again later.' },
+  skip: (req) => req.path === '/me' || req.path === '/shop', // don't limit /me or /shop PATCH
+})
+const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500 })
 
-app.use('/api/auth', authLimiter)
+app.use('/api/auth', loginLimiter)
 app.use('/api',      apiLimiter)
 
 // ── Routes ───────────────────────────────────────────────────────────────────

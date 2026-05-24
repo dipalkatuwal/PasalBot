@@ -14,7 +14,6 @@ import ProductsPage       from '@/pages/ProductsPage'
 import OrdersPage         from '@/pages/OrdersPage'
 import BotPage            from '@/pages/BotPage'
 import CreateMyShopPage   from '@/pages/CreateMyShopPage'
-import ThemesPage         from '@/pages/ThemesPage'
 
 // Dashboard shell — only rendered when logged in
 function AppShell() {
@@ -29,7 +28,6 @@ function AppShell() {
           <Route path="/orders"    element={<ProtectedRoute><OrdersPage       /></ProtectedRoute>} />
           <Route path="/bot"       element={<ProtectedRoute><BotPage          /></ProtectedRoute>} />
           <Route path="/shop-setup"element={<ProtectedRoute><CreateMyShopPage /></ProtectedRoute>} />
-          <Route path="/themes"    element={<ProtectedRoute><ThemesPage       /></ProtectedRoute>} />
           <Route path="*"          element={<Navigate to="/dashboard" replace />} />
         </Routes>
       

@@ -243,7 +243,7 @@ function CartDrawer({ colors, cart, onRemove, onClose, onCheckout }) {
 }
 
 // ── Self-contained ShopUI for the phone frame ─────────────────────────────────
-function DemoShopUI({ shop, products, keywords, categories, themeId }) {
+function DemoShopUI({ shop, products, keywords, categories, themeId, templateId }) {
   const [activeCat,  setActiveCat]  = useState('all')
   const [cart,       setCart]       = useState([])
   const [chatOpen,   setChatOpen]   = useState(false)
@@ -269,6 +269,402 @@ function DemoShopUI({ shop, products, keywords, categories, themeId }) {
 
   const handleOrderComplete = async () => { setCart([]) }
   const handleCartCheckout  = () => { setCartOpen(false); setChatOpen(true) }
+
+  // ── Himalayan Store (compact phone version) ──────────────────────────────
+  // ── Himalayan Store (compact phone — full colors.* driven) ─────────────────
+  if (templateId === 'himalayan') {
+    return (
+      <div style={{ height: '100%', position: 'relative', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ height: '100%', background: colors.bg, color: colors.text, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none' }}>
+          {/* Header */}
+          <div style={{ position: 'sticky', top: 0, zIndex: 10, background: `${colors.bg}f5`, borderBottom: `1px solid ${colors.accent}20`, padding: '0 12px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: colors.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{shop.logo || '🏔️'}</div>
+              <div>
+                <p style={{ fontWeight: 800, fontSize: 13, margin: 0, color: colors.text }}>{shop.name}</p>
+                <p style={{ fontSize: 9, color: colors.accent, opacity: 0.7, margin: 0 }}>{shop.location || 'Nepal'}</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setChatOpen(true)} style={{ background: `${colors.accent}15`, color: colors.accent, border: 'none', borderRadius: 10, height: 30, padding: '0 10px', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>💬</button>
+              <button onClick={() => setCartOpen(v => !v)} style={{ position: 'relative', background: colors.accent, color: '#fff', border: 'none', borderRadius: 10, height: 30, padding: '0 10px', fontSize: 10, fontWeight: 800, cursor: 'pointer' }}>
+                🛍️{cart.length > 0 && ` ${cart.length}`}
+              </button>
+            </div>
+          </div>
+          {/* Hero */}
+          <div style={{ height: 160, background: `linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.65)), url('https://picsum.photos/id/1015/2000/1200') center/cover`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', textAlign: 'center', color: '#fff', padding: '0 16px' }}>
+            <h1 style={{ fontSize: 24, fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.04em' }}>{shop.name}</h1>
+            <button onClick={() => document.getElementById('demo-h-products')?.scrollIntoView({ behavior: 'smooth' })} style={{ background: colors.accent, color: '#fff', border: 'none', borderRadius: 16, padding: '8px 20px', fontSize: 11, fontWeight: 800, cursor: 'pointer', boxShadow: `0 4px 12px ${colors.accent}55` }}>Shop Now →</button>
+          </div>
+          {/* Trust pills */}
+          <div style={{ background: colors.card, borderBottom: `1px solid ${colors.accent}12`, padding: '10px 12px', display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {[['📍', 'Local'], ['🛡️', 'COD'], ['🚚', '1-2 Days']].map(([icon, label]) => (
+              <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 4, background: `${colors.accent}12`, color: colors.accent, borderRadius: 20, padding: '4px 10px', fontSize: 10, fontWeight: 700 }}>{icon} {label}</span>
+            ))}
+          </div>
+          {/* Category row */}
+          <div style={{ padding: '10px 12px', display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', background: colors.bg }}>
+            {visibleCats.map(cat => (
+              <button key={cat._id} onClick={() => setActiveCat(cat._id)} style={{ background: activeCat === cat._id ? colors.accent : 'transparent', color: activeCat === cat._id ? '#fff' : colors.text, border: `1px solid ${activeCat === cat._id ? colors.accent : colors.accent + '40'}`, borderRadius: 16, padding: '4px 12px', fontSize: 10, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                {cat.emoji} {cat.label}
+              </button>
+            ))}
+          </div>
+          {/* Products */}
+          <div id="demo-h-products" style={{ padding: '8px 12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, background: `${colors.accent}06` }}>
+            {filtered.map(p => (
+              <div key={p._id} style={{ background: colors.card, borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `1px solid ${colors.accent}10` }}>
+                <div style={{ height: 100, background: `linear-gradient(135deg, ${colors.bg}, ${colors.card})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 44 }}>{p.image}</div>
+                <div style={{ padding: '10px' }}>
+                  <p style={{ fontWeight: 700, fontSize: 11, margin: '0 0 4px', color: colors.text, lineHeight: 1.2 }}>{p.name}</p>
+                  <p style={{ fontWeight: 900, fontSize: 13, color: colors.accent, margin: '0 0 8px' }}>NPR {p.price.toLocaleString()}</p>
+                  <button disabled={p.stock <= 0} onClick={() => addToCart(p)} style={{ width: '100%', background: p.stock > 0 ? colors.accent : '#9ca3af', color: '#fff', border: 'none', borderRadius: 10, padding: '7px', fontSize: 10, fontWeight: 800, cursor: p.stock > 0 ? 'pointer' : 'not-allowed' }}>
+                    {p.stock > 0 ? 'Add' : 'Sold Out'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ background: colors.text, color: colors.bg, padding: '20px 12px', marginTop: 8, textAlign: 'center' }}>
+            <p style={{ fontWeight: 800, fontSize: 13, margin: '0 0 4px', color: colors.bg }}>{shop.name}</p>
+            <p style={{ fontSize: 11, opacity: 0.6, margin: 0 }}>{shop.location}</p>
+          </div>
+        </div>
+        {cartOpen && <CartDrawer colors={colors} cart={cart} onRemove={removeItem} onClose={() => setCartOpen(false)} onCheckout={handleCartCheckout} />}
+        {chatOpen && <ChatDrawer colors={colors} onClose={() => setChatOpen(false)} keywords={keywords} products={products} onOrderComplete={handleOrderComplete} />}
+      </div>
+    )
+  }
+
+  // ── Himalaya Haven (compact phone — full colors.* driven) ──────────────────
+  if (templateId === 'haven') {
+    return (
+      <div style={{ height: '100%', position: 'relative', fontFamily: 'Georgia, serif' }}>
+        <div style={{ height: '100%', background: colors.bg, color: colors.text, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none' }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 10, background: colors.card, borderBottom: `1px solid ${colors.accent}20`, padding: '0 12px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 22 }}>{shop.logo || '🏔️'}</span>
+              <div>
+                <p style={{ fontWeight: 700, fontSize: 13, margin: 0, color: colors.accent }}>{shop.name}</p>
+                <p style={{ fontSize: 9, color: colors.accent, opacity: 0.7, margin: 0, fontFamily: 'system-ui' }}>{shop.location || 'Nepal'}</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setChatOpen(true)} style={{ background: `${colors.accent}15`, color: colors.accent, border: 'none', borderRadius: 10, height: 30, padding: '0 8px', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'system-ui' }}>💬</button>
+              <button onClick={() => setCartOpen(v => !v)} style={{ position: 'relative', background: colors.accent, color: '#fff', border: 'none', borderRadius: 10, height: 30, padding: '0 10px', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'system-ui' }}>
+                🛍️{cart.length > 0 && ` ${cart.length}`}
+              </button>
+            </div>
+          </div>
+          {/* Hero */}
+          <div style={{ height: 180, background: `linear-gradient(rgba(0,0,0,0.62),rgba(0,0,0,0.78)), url('https://picsum.photos/id/1015/2000/1200') center/cover`, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '16px' }}>
+            <p style={{ fontSize: 10, color: colors.card, letterSpacing: '0.2em', textTransform: 'uppercase', margin: '0 0 6px', fontFamily: 'system-ui' }}>Authentic Himalayan Goods</p>
+            <h1 style={{ fontSize: 26, fontWeight: 700, margin: '0 0 10px', color: '#fff', letterSpacing: '-0.03em' }}>{shop.name}</h1>
+            <button onClick={() => document.getElementById('demo-haven-shop')?.scrollIntoView({ behavior: 'smooth' })} style={{ background: colors.accent, color: '#fff', border: 'none', borderRadius: 16, padding: '8px 16px', fontSize: 11, fontWeight: 700, cursor: 'pointer', alignSelf: 'flex-start', fontFamily: 'system-ui', boxShadow: `0 4px 12px ${colors.accent}55` }}>Explore →</button>
+          </div>
+          {/* Trust pills */}
+          <div style={{ background: colors.card, borderBottom: `1px solid ${colors.accent}12`, padding: '10px 12px', display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {[['📍', shop.location || 'Kathmandu'], ['🛡️', 'COD'], ['🚚', '1-2 Days']].map(([icon, label]) => (
+              <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 4, background: `${colors.accent}12`, color: colors.accent, borderRadius: 16, padding: '4px 10px', fontSize: 10, fontWeight: 600, fontFamily: 'system-ui' }}>{icon} {label}</span>
+            ))}
+          </div>
+          {/* Category pills */}
+          <div style={{ padding: '10px 12px', display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', background: colors.bg }}>
+            {visibleCats.map(cat => (
+              <button key={cat._id} onClick={() => setActiveCat(cat._id)} style={{ background: activeCat === cat._id ? colors.accent : colors.card, color: activeCat === cat._id ? '#fff' : colors.text, border: 'none', borderRadius: 16, padding: '5px 12px', fontSize: 10, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'system-ui' }}>
+                {cat.emoji} {cat.label}
+              </button>
+            ))}
+          </div>
+          {/* Products */}
+          <div id="demo-haven-shop" style={{ padding: '10px 12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, background: `${colors.accent}06` }}>
+            {filtered.map(p => (
+              <div key={p._id} style={{ background: colors.card, borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.07)', border: `1px solid ${colors.accent}10` }}>
+                <div style={{ height: 110, background: `linear-gradient(135deg, ${colors.bg}, ${colors.card})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 50 }}>{p.image}</div>
+                <div style={{ padding: '10px' }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, margin: '0 0 4px', color: colors.text, lineHeight: 1.2 }}>{p.name}</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: colors.accent, margin: '0 0 8px', fontFamily: 'system-ui' }}>NPR {p.price.toLocaleString()}</p>
+                  <button disabled={p.stock <= 0} onClick={() => addToCart(p)} style={{ width: '100%', background: p.stock > 0 ? colors.accent : '#9ca3af', color: '#fff', border: 'none', borderRadius: 10, padding: '7px', fontSize: 10, fontWeight: 700, cursor: p.stock > 0 ? 'pointer' : 'not-allowed', fontFamily: 'system-ui' }}>
+                    {p.stock > 0 ? 'Add' : 'Sold Out'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ background: colors.text, color: colors.bg, padding: '20px 12px', marginTop: 8, textAlign: 'center' }}>
+            <span style={{ fontSize: 28, display: 'block', marginBottom: 4 }}>{shop.logo || '🏔️'}</span>
+            <p style={{ fontWeight: 700, fontSize: 14, margin: '0 0 4px', color: colors.bg }}>{shop.name}</p>
+            <p style={{ fontSize: 11, opacity: 0.7, margin: 0, fontFamily: 'system-ui' }}>{shop.location}</p>
+          </div>
+        </div>
+        {cartOpen && <CartDrawer colors={colors} cart={cart} onRemove={removeItem} onClose={() => setCartOpen(false)} onCheckout={handleCartCheckout} />}
+        {chatOpen && <ChatDrawer colors={colors} onClose={() => setChatOpen(false)} keywords={keywords} products={products} onOrderComplete={handleOrderComplete} />}
+      </div>
+    )
+  }
+
+  // ── Shanti Collective (compact phone — full colors.* driven) ───────────────
+  if (templateId === 'shanti') {
+    return (
+      <div style={{ height: '100%', position: 'relative', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ height: '100%', background: colors.bg, color: colors.text, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none' }}>
+          {/* Nav */}
+          <div style={{ position: 'sticky', top: 0, zIndex: 10, background: `${colors.bg}e8`, backdropFilter: 'blur(12px)', borderBottom: `1px solid ${colors.accent}20`, padding: '0 12px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 28, height: 28, background: colors.accent, color: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, transform: 'rotate(12deg)' }}>{shop.logo || '☸️'}</div>
+              <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: '-0.04em', color: colors.text }}>{shop.name.toUpperCase()}</span>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setChatOpen(true)} style={{ background: `${colors.accent}15`, color: colors.accent, border: `1px solid ${colors.accent}30`, borderRadius: 10, height: 30, padding: '0 8px', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>🪔</button>
+              <button onClick={() => setCartOpen(v => !v)} style={{ background: colors.accent, color: '#fff', border: 'none', borderRadius: 10, height: 30, padding: '0 10px', fontSize: 10, fontWeight: 800, cursor: 'pointer' }}>
+                {cart.length > 0 ? `✦ ${cart.length}` : '✦ Bag'}
+              </button>
+            </div>
+          </div>
+          {/* Hero */}
+          <div style={{ padding: '28px 14px 20px', background: `linear-gradient(135deg, ${colors.bg}, ${colors.card})`, borderBottom: `1px solid ${colors.accent}15`, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `radial-gradient(circle, ${colors.accent} 0.5px, transparent 1px)`, backgroundSize: '20px 20px', opacity: 0.06 }} />
+            <p style={{ fontSize: 9, letterSpacing: '0.25em', color: colors.accent, textTransform: 'uppercase', margin: '0 0 8px', fontWeight: 700 }}>Curated with Intention</p>
+            <h1 style={{ fontSize: 26, fontWeight: 800, margin: '0 0 10px', letterSpacing: '-0.04em', lineHeight: 1.05, color: colors.text }}>{shop.name} <span style={{ color: colors.accent }}>Collective</span></h1>
+            <p style={{ fontSize: 11, color: colors.text, opacity: 0.6, margin: '0 0 14px', lineHeight: 1.6 }}>{shop.description || 'A sanctuary for mindful living.'}</p>
+            <button onClick={() => document.getElementById('demo-shanti-offerings')?.scrollIntoView({ behavior: 'smooth' })} style={{ background: colors.accent, color: '#fff', border: 'none', borderRadius: 16, padding: '8px 18px', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>View Offerings</button>
+          </div>
+          {/* Category filter */}
+          <div style={{ padding: '10px 12px', display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', background: colors.bg }}>
+            {visibleCats.map(cat => (
+              <button key={cat._id} onClick={() => setActiveCat(cat._id)} style={{ background: activeCat === cat._id ? colors.accent : 'transparent', color: activeCat === cat._id ? '#fff' : colors.text, border: `1px solid ${colors.accent}35`, borderRadius: 16, padding: '4px 12px', fontSize: 10, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', opacity: activeCat === cat._id ? 1 : 0.7 }}>
+                {cat.emoji} {cat.label}
+              </button>
+            ))}
+          </div>
+          {/* Products */}
+          <div id="demo-shanti-offerings" style={{ padding: '6px 12px 12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, background: colors.card }}>
+            {filtered.map(p => (
+              <div key={p._id} style={{ background: colors.bg, borderRadius: 16, overflow: 'hidden', border: `1px solid ${colors.accent}15` }}>
+                <div style={{ height: 110, background: `${colors.accent}10`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 50, position: 'relative' }}>
+                  {p.image}
+                  {p.stock === 0 && <div style={{ position: 'absolute', top: 6, right: 6, background: '#ef4444cc', color: '#fff', fontSize: 8, fontWeight: 700, padding: '2px 6px', borderRadius: 10 }}>OUT</div>}
+                </div>
+                <div style={{ padding: '10px' }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, margin: '0 0 2px', lineHeight: 1.2, color: colors.text }}>{p.name}</p>
+                  <p style={{ fontSize: 10, color: colors.accent, margin: '0 0 8px', opacity: 0.8 }}>{p.category}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: 13, fontWeight: 300, color: colors.text }}>{p.price.toLocaleString()}</span>
+                    <button disabled={p.stock <= 0} onClick={() => addToCart(p)} style={{ background: p.stock > 0 ? colors.accent : colors.card, color: p.stock > 0 ? '#fff' : colors.text, border: 'none', borderRadius: 8, padding: '5px 10px', fontSize: 9, fontWeight: 600, cursor: p.stock > 0 ? 'pointer' : 'not-allowed', opacity: p.stock <= 0 ? 0.5 : 1 }}>
+                      {p.stock > 0 ? 'Add' : 'Out'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ background: colors.text, color: colors.bg, borderTop: `1px solid ${colors.accent}15`, padding: '20px 12px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 4 }}>
+              <div style={{ width: 20, height: 20, background: colors.accent, color: '#fff', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>{shop.logo || '☸️'}</div>
+              <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: '-0.03em', color: colors.bg }}>{shop.name.toUpperCase()}</span>
+            </div>
+            <p style={{ fontSize: 11, color: colors.bg, opacity: 0.5, margin: 0 }}>{shop.location}</p>
+          </div>
+        </div>
+        {cartOpen && <CartDrawer colors={colors} cart={cart} onRemove={removeItem} onClose={() => setCartOpen(false)} onCheckout={handleCartCheckout} />}
+        {chatOpen && <ChatDrawer colors={colors} onClose={() => setChatOpen(false)} keywords={keywords} products={products} onOrderComplete={handleOrderComplete} />}
+      </div>
+    )
+  }
+
+  // ── Kailash (compact phone — full colors.* driven) ─────────────────────────
+  if (templateId === 'kailash') {
+    return (
+      <div style={{ height: '100%', position: 'relative', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ height: '100%', background: colors.bg, color: colors.text, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none' }}>
+          {/* Nav */}
+          <div style={{ position: 'sticky', top: 0, zIndex: 10, background: `${colors.bg}cc`, backdropFilter: 'blur(16px)', borderBottom: `1px solid ${colors.text}15`, padding: '0 12px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 22 }}>{shop.logo || '🕉️'}</span>
+              <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.03em', color: colors.text }}>{shop.name.toUpperCase()}</span>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setChatOpen(true)} style={{ background: 'transparent', color: colors.text, border: `1px solid ${colors.text}25`, borderRadius: 10, height: 30, padding: '0 8px', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>🪔</button>
+              <button onClick={() => setCartOpen(v => !v)} style={{ background: colors.accent, color: '#fff', border: 'none', borderRadius: 10, height: 30, padding: '0 10px', fontSize: 10, fontWeight: 800, cursor: 'pointer' }}>
+                {cart.length > 0 ? `✦ ${cart.length}` : 'Sacred'}
+              </button>
+            </div>
+          </div>
+          {/* Hero */}
+          <div style={{ minHeight: '45vw', background: `linear-gradient(rgba(0,0,0,0.75),rgba(0,0,0,0.88)), url('https://picsum.photos/id/1015/2000/1200') center/cover`, padding: '28px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', boxSizing: 'border-box', position: 'relative' }}>
+            <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(at center, ${colors.accent}08, transparent 70%)` }} />
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 10, background: 'rgba(255,255,255,0.08)', padding: '5px 12px', borderRadius: 16, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fff', alignSelf: 'flex-start' }}>
+              <div style={{ width: 1, height: 10, background: colors.accent }} /> Since the Time of the Gods
+            </div>
+            <h1 style={{ fontSize: 28, fontWeight: 900, margin: '0 0 10px', lineHeight: 1, letterSpacing: '-0.04em', color: '#fff' }}>WHERE<br />HEAVEN<br />MEETS EARTH</h1>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => document.getElementById('demo-k-sanctum')?.scrollIntoView({ behavior: 'smooth' })} style={{ background: colors.accent, color: '#fff', border: 'none', borderRadius: 16, padding: '8px 16px', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>ENTER SANCTUM</button>
+              <button onClick={() => setChatOpen(true)} style={{ background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 16, padding: '8px 14px', fontSize: 11, cursor: 'pointer' }}>Oracle</button>
+            </div>
+          </div>
+          {/* Category filter */}
+          <div style={{ padding: '10px 12px', display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', background: colors.card }}>
+            {visibleCats.map(cat => (
+              <button key={cat._id} onClick={() => setActiveCat(cat._id)} style={{ background: activeCat === cat._id ? colors.accent : 'transparent', color: activeCat === cat._id ? '#fff' : colors.text, border: `1px solid ${colors.accent}35`, borderRadius: 16, padding: '4px 12px', fontSize: 10, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', opacity: activeCat === cat._id ? 1 : 0.6 }}>
+                {cat.emoji} {cat.label}
+              </button>
+            ))}
+          </div>
+          {/* Products */}
+          <div id="demo-k-sanctum" style={{ padding: '10px 12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, background: colors.card }}>
+            {filtered.map((p, i) => {
+              const grads = [
+                `linear-gradient(135deg, ${colors.accent}25, ${colors.bg})`,
+                `linear-gradient(135deg, ${colors.accent}18, ${colors.card})`,
+                `linear-gradient(135deg, ${colors.accent}12, ${colors.bg})`,
+              ]
+              return (
+                <div key={p._id} style={{ background: colors.bg, borderRadius: 16, overflow: 'hidden', border: `1px solid ${colors.accent}15` }}>
+                  <div style={{ height: 110, background: grads[i % grads.length], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 52 }}>{p.image}</div>
+                  <div style={{ padding: '10px' }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, margin: '0 0 2px', lineHeight: 1.2, color: colors.text }}>{p.name}</p>
+                    <p style={{ fontSize: 10, color: colors.accent, margin: '0 0 8px', opacity: 0.7 }}>{p.category}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 13, fontWeight: 300, color: colors.accent }}>{p.price.toLocaleString()}</span>
+                      <button disabled={p.stock <= 0} onClick={() => addToCart(p)} style={{ background: p.stock > 0 ? colors.accent : colors.card, color: p.stock > 0 ? '#fff' : colors.text, border: 'none', borderRadius: 8, padding: '5px 10px', fontSize: 9, fontWeight: 700, cursor: p.stock > 0 ? 'pointer' : 'not-allowed', opacity: p.stock <= 0 ? 0.5 : 1 }}>
+                        {p.stock > 0 ? 'Claim' : 'Out'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div style={{ background: colors.text, color: colors.bg, borderTop: `1px solid ${colors.accent}15`, padding: '20px 12px', textAlign: 'center' }}>
+            <span style={{ fontSize: 32, display: 'block', marginBottom: 6 }}>{shop.logo || '🕉️'}</span>
+            <p style={{ fontSize: 14, fontWeight: 700, margin: '0 0 4px', letterSpacing: '-0.03em', color: colors.bg }}>{shop.name.toUpperCase()}</p>
+            <p style={{ fontSize: 10, color: colors.bg, opacity: 0.4, margin: 0 }}>The mountain calls. The soul answers.</p>
+          </div>
+        </div>
+        {cartOpen && <CartDrawer colors={colors} cart={cart} onRemove={removeItem} onClose={() => setCartOpen(false)} onCheckout={handleCartCheckout} />}
+        {chatOpen && <ChatDrawer colors={colors} onClose={() => setChatOpen(false)} keywords={keywords} products={products} onOrderComplete={handleOrderComplete} />}
+      </div>
+    )
+  }
+
+  // ── Legacy Story Magazine (compact phone version) ─────────────────────────
+  if (templateId === 'story') {
+    const storyPalettes = [
+      { bg: colors.accent, text: '#fff' },
+      { bg: colors.card, text: colors.text },
+      { bg: colors.bg, text: colors.text },
+    ]
+    return (
+      <div style={{ height: '100%', position: 'relative', fontFamily: 'var(--font-body)' }}>
+        <div style={{ height: '100%', background: colors.bg, color: colors.text, overflowY: 'auto', overflowX: 'hidden' }}>
+          {/* Compact header */}
+          <div style={{ background: colors.accent, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 18 }}>{shop.logo}</span>
+              <p style={{ fontWeight: 900, fontSize: 13, color: '#fff', margin: 0, letterSpacing: '-0.03em' }}>{shop.name}</p>
+            </div>
+            <button onClick={() => setCartOpen(v => !v)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: 8, padding: '5px 10px', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>
+              🛒{cart.length > 0 ? ` ${cart.length}` : ''}
+            </button>
+          </div>
+          {/* Masthead */}
+          <div style={{ background: colors.accent, padding: '16px 14px 20px', color: '#fff' }}>
+            <p style={{ fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, margin: '0 0 6px' }}>Issue No. 01</p>
+            <h1 style={{ fontSize: 28, fontWeight: 900, margin: 0, lineHeight: 0.9, letterSpacing: '-0.05em' }}>{shop.name}</h1>
+          </div>
+          {/* Category strip */}
+          <div style={{ overflowX: 'auto', background: colors.card, display: 'flex', gap: 0, borderBottom: `1px solid ${colors.accent}15` }}>
+            {visibleCats.map(cat => {
+              const isActive = cat._id === activeCat
+              return <button key={cat._id} onClick={() => setActiveCat(cat._id)} style={{ background: 'none', border: 'none', color: isActive ? colors.accent : colors.text, padding: '8px 12px', fontSize: 10, fontWeight: 800, cursor: 'pointer', borderBottom: `2px solid ${isActive ? colors.accent : 'transparent'}`, whiteSpace: 'nowrap' }}>{cat.emoji} {cat.label}</button>
+            })}
+          </div>
+          {/* Story cards */}
+          <div style={{ padding: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {filtered.map((p, i) => {
+              const pal = storyPalettes[i % storyPalettes.length]
+              const isFeature = i === 0
+              return (
+                <div key={p._id} style={{ borderRadius: 14, overflow: 'hidden', background: pal.bg, border: `1px solid ${colors.accent}14`, display: 'flex', flexDirection: isFeature ? 'column' : 'row', minHeight: isFeature ? 160 : 80 }}>
+                  <div style={{ background: isFeature ? `linear-gradient(135deg,${colors.accent}cc,${colors.accent})` : `${colors.accent}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isFeature ? 52 : 32, width: isFeature ? '100%' : 70, height: isFeature ? 100 : 'auto', flexShrink: 0 }}>{p.image}</div>
+                  <div style={{ padding: isFeature ? '10px 12px' : '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 6 }}>
+                    <div>
+                      <p style={{ fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.12em', color: colors.accent, margin: '0 0 3px', opacity: 0.8, fontWeight: 700 }}>{p.category}</p>
+                      <p style={{ fontWeight: 800, fontSize: isFeature ? 15 : 12, margin: 0, lineHeight: 1.2, color: pal.text }}>{p.name}</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontWeight: 900, fontSize: isFeature ? 17 : 13, color: pal.bg === colors.accent ? '#fff' : colors.accent }}>NPR {p.price.toLocaleString()}</span>
+                      <button disabled={p.stock <= 0} onClick={() => addToCart(p)} style={{ background: pal.bg === colors.accent ? 'rgba(255,255,255,0.9)' : colors.accent, color: pal.bg === colors.accent ? colors.accent : '#fff', border: 'none', borderRadius: 8, padding: '5px 10px', fontSize: 10, fontWeight: 800, cursor: 'pointer' }}>{p.stock > 0 ? '+ Add' : 'Out'}</button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div style={{ background: colors.accent, color: '#fff', padding: '20px 14px', textAlign: 'center', marginTop: 10 }}>
+            <p style={{ fontSize: 18, margin: '0 0 4px' }}>{shop.logo}</p>
+            <p style={{ fontWeight: 900, fontSize: 13, margin: 0 }}>{shop.name}</p>
+          </div>
+        </div>
+        {/* Overlays */}
+        {cartOpen && <CartDrawer colors={colors} cart={cart} onRemove={removeItem} onClose={() => setCartOpen(false)} onCheckout={handleCartCheckout} />}
+        {chatOpen && <ChatDrawer colors={colors} onClose={() => setChatOpen(false)} keywords={keywords} products={products} onOrderComplete={handleOrderComplete} />}
+      </div>
+    )
+  }
+
+  // ── Minimal Lookbook (compact phone version) ───────────────────────────────
+  if (templateId === 'minimal') {
+    return (
+      <div style={{ height: '100%', position: 'relative', fontFamily: 'var(--font-body)' }}>
+        <div style={{ height: '100%', background: '#FAFAFA', color: '#111', overflowY: 'auto', overflowX: 'hidden' }}>
+          {/* Slim header */}
+          <div style={{ borderBottom: '2px solid #111', padding: '0 14px', height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FAFAFA', position: 'sticky', top: 0, zIndex: 10 }}>
+            <p style={{ fontWeight: 900, fontSize: 12, margin: 0, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>{shop.name}</p>
+            <button onClick={() => setCartOpen(v => !v)} style={{ background: '#111', border: 'none', color: '#fff', borderRadius: 4, padding: '4px 8px', fontSize: 10, fontWeight: 800, cursor: 'pointer' }}>Bag{cart.length > 0 ? ` (${cart.length})` : ''}</button>
+          </div>
+          {/* Sparse hero */}
+          <div style={{ padding: '28px 14px 20px' }}>
+            <p style={{ fontSize: 8, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#aaa', margin: '0 0 10px', fontWeight: 700 }}>Collection</p>
+            <h1 style={{ fontSize: 32, fontWeight: 900, lineHeight: 0.88, letterSpacing: '-0.05em', margin: '0 0 16px' }}>{shop.name}</h1>
+            <div style={{ width: 40, height: 2, background: colors.accent, borderRadius: 1 }} />
+          </div>
+          {/* Category pills */}
+          <div style={{ padding: '0 14px 12px', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {visibleCats.map(cat => {
+              const isActive = cat._id === activeCat
+              return <button key={cat._id} onClick={() => setActiveCat(cat._id)} style={{ background: isActive ? '#111' : 'transparent', color: isActive ? '#fff' : '#555', border: '1px solid #ccc', borderRadius: 3, padding: '4px 10px', fontSize: 9, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{cat.label}</button>
+            })}
+          </div>
+          {/* Table header */}
+          <div style={{ padding: '0 14px 8px', borderBottom: '1px solid #ddd', display: 'grid', gridTemplateColumns: '40px 1fr auto', gap: '0 10px' }}>
+            <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#bbb' }}>#</span>
+            <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#bbb' }}>Product</span>
+            <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#bbb', textAlign: 'right' }}>Price</span>
+          </div>
+          {/* Rows */}
+          {filtered.map(p => (
+            <div key={p._id} onClick={() => addToCart(p)} style={{ display: 'grid', gridTemplateColumns: '40px 1fr auto', gap: '0 10px', alignItems: 'center', padding: '12px 14px', borderBottom: '1px solid #eee', cursor: 'pointer' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 6, background: `${colors.accent}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{p.image}</div>
+              <div>
+                <p style={{ fontWeight: 800, fontSize: 12, margin: '0 0 2px', letterSpacing: '-0.01em' }}>{p.name}</p>
+                <p style={{ fontSize: 9, color: '#aaa', margin: 0, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{p.category}</p>
+              </div>
+              <p style={{ fontWeight: 900, fontSize: 13, margin: 0, color: '#111', whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>NPR {p.price.toLocaleString()}</p>
+            </div>
+          ))}
+          {/* Minimal footer */}
+          <div style={{ borderTop: '2px solid #111', padding: '20px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <p style={{ fontWeight: 900, fontSize: 11, margin: 0, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>{shop.name}</p>
+            <span style={{ fontSize: 16 }}>{shop.logo}</span>
+          </div>
+        </div>
+        {cartOpen && <CartDrawer colors={colors} cart={cart} onRemove={removeItem} onClose={() => setCartOpen(false)} onCheckout={handleCartCheckout} />}
+        {chatOpen && <ChatDrawer colors={colors} onClose={() => setChatOpen(false)} keywords={keywords} products={products} onOrderComplete={handleOrderComplete} />}
+      </div>
+    )
+  }
 
   return (
     // Outer wrapper is position:relative — drawers use absolute inset:0 against THIS, not the scrollable child
@@ -503,7 +899,7 @@ function DemoShopUI({ shop, products, keywords, categories, themeId }) {
 // ── Main DemoShop wrapper (phone frame) ───────────────────────────────────────
 export function DemoShop() {
   const { demoShopOpen, closeDemoShop } = useUI()
-  const { activeTheme, visibleProducts, shop, keywords, categories } = useShop()
+  const { activeTheme, activeTemplate, visibleProducts, shop, keywords, categories } = useShop()
 
   // Keep mounted so chat state survives route changes — just hide with CSS
   const openFullScreen = () => {
@@ -675,6 +1071,7 @@ export function DemoShop() {
               keywords={keywords}
               categories={categories}
               themeId={activeTheme.id}
+              templateId={activeTemplate.id}
             />
           </div>
 

@@ -7,6 +7,7 @@ const productSchema = new mongoose.Schema(
     price:    { type: Number, required: [true, 'Price is required'], min: [0, 'Price cannot be negative'] },
     stock:    { type: Number, default: 0, min: [0, 'Stock cannot be negative'] },
     image:    { type: String, default: '📦' },
+    imageUrl: { type: String, default: '' },
     category: { type: String, default: 'General' },
     visible:  { type: Boolean, default: true },
   },

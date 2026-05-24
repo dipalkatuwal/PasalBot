@@ -40,6 +40,10 @@ export default function CreateMyShopPage() {
       instagram: user?.shop?.socialLinks?.instagram || '',
     },
     freeDeliveryThreshold: user?.shop?.freeDeliveryThreshold || 0,
+    whatsapp:  user?.shop?.whatsapp  || '',
+    website:   user?.shop?.website   || '',
+    tagline:   user?.shop?.tagline   || '',
+    shopType:  user?.shop?.shopType  || '',
   })
 
   // Sync details to preview
@@ -168,7 +172,34 @@ export default function CreateMyShopPage() {
               <Input label="Shop Name" value={details.name} onChange={e => setDetails({ ...details, name: e.target.value })} required />
               <Input label="Shop Logo (Emoji)" value={details.logo} onChange={e => setDetails({ ...details, logo: e.target.value })} maxLength={2} />
               <Input label="Phone Number" value={details.phone} onChange={e => setDetails({ ...details, phone: e.target.value })} placeholder="98XXXXXXXX" />
-              <Input label="Location" value={details.location} onChange={e => setDetails({ ...details, location: e.target.value })} placeholder="e.g. New Road, Kathmandu" />
+              <Input label="WhatsApp Number" value={details.whatsapp} onChange={e => setDetails({ ...details, whatsapp: e.target.value })} placeholder="98XXXXXXXX" />
+              <Input label="Location / Address" value={details.location} onChange={e => setDetails({ ...details, location: e.target.value })} placeholder="e.g. New Road, Kathmandu" />
+              <div>
+                <label style={{ display: 'block', fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Shop Category / Type</label>
+                <select
+                  value={details.shopType}
+                  onChange={e => setDetails({ ...details, shopType: e.target.value })}
+                  style={{ width: '100%', background: 'var(--color-bg-base)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '7px 10px', color: 'var(--color-text-primary)', fontSize: 13, fontFamily: 'var(--font-body)', outline: 'none', boxSizing: 'border-box' }}
+                >
+                  <option value="">— Select type —</option>
+                  <option value="Clothing & Fashion">👗 Clothing & Fashion</option>
+                  <option value="Food & Beverages">🍵 Food & Beverages</option>
+                  <option value="Handicraft & Art">🎨 Handicraft & Art</option>
+                  <option value="Electronics">⚡ Electronics</option>
+                  <option value="Beauty & Personal Care">💄 Beauty & Personal Care</option>
+                  <option value="Home & Living">🏠 Home & Living</option>
+                  <option value="Books & Stationery">📚 Books & Stationery</option>
+                  <option value="Jewellery & Accessories">💍 Jewellery & Accessories</option>
+                  <option value="Health & Wellness">🌿 Health & Wellness</option>
+                  <option value="Gifts & Collectibles">🎁 Gifts & Collectibles</option>
+                  <option value="Sports & Outdoors">⛺ Sports & Outdoors</option>
+                  <option value="Other">📦 Other</option>
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <Input label="Shop Tagline" value={details.tagline} onChange={e => setDetails({ ...details, tagline: e.target.value })} placeholder="e.g. Handmade with love in Nepal" />
+              <Input label="Website URL" value={details.website} onChange={e => setDetails({ ...details, website: e.target.value })} placeholder="https://yourshop.com" />
             </div>
             <Textarea label="Short Description" value={details.description} onChange={e => setDetails({ ...details, description: e.target.value })} placeholder="Tell customers what you sell..." />
           </Card>
@@ -206,10 +237,12 @@ export default function CreateMyShopPage() {
           </Card>
 
           <Card>
-            <SectionHeader title="Social Links" />
+            <SectionHeader title="Social & Web Links" />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-              <Input label="Facebook Page URL" value={details.socialLinks.facebook} onChange={e => setDetails({ ...details, socialLinks: { ...details.socialLinks, facebook: e.target.value } })} />
-              <Input label="Instagram Handle" value={details.socialLinks.instagram} onChange={e => setDetails({ ...details, socialLinks: { ...details.socialLinks, instagram: e.target.value } })} />
+              <Input label="Facebook Page URL" value={details.socialLinks.facebook} onChange={e => setDetails({ ...details, socialLinks: { ...details.socialLinks, facebook: e.target.value } })} placeholder="https://facebook.com/yourpage" />
+              <Input label="Instagram Handle" value={details.socialLinks.instagram} onChange={e => setDetails({ ...details, socialLinks: { ...details.socialLinks, instagram: e.target.value } })} placeholder="@yourshop" />
+              <Input label="WhatsApp Number" value={details.whatsapp} onChange={e => setDetails({ ...details, whatsapp: e.target.value })} placeholder="98XXXXXXXX" />
+              <Input label="Website / TikTok / Other URL" value={details.website} onChange={e => setDetails({ ...details, website: e.target.value })} placeholder="https://yourshop.com" />
             </div>
           </Card>
 
@@ -221,57 +254,98 @@ export default function CreateMyShopPage() {
 
       {/* ── Themes tab ──────────────────────────────────────────────────── */}
       {tab === 'themes' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
-          {SHOP_THEMES.map(theme => {
-            const isActive = activeTheme.id === theme.id
-            return (
-              <div key={theme.id}
-                onClick={() => !saving && handleSetTheme(theme)}
-                style={{
-                  borderRadius: 16, overflow: 'hidden', cursor: saving ? 'wait' : 'pointer',
-                  border: `2px solid ${isActive ? theme.colors.accent : 'var(--color-border)'}`,
-                  boxShadow: isActive ? `0 0 0 3px ${theme.colors.accent}44` : 'none',
-                  transition: 'all 0.2s', position: 'relative',
-                }}
-              >
-                {/* Theme preview */}
-                <div style={{ background: theme.colors.bg, padding: '1.25rem' }}>
-                  {/* Mini product cards */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 10 }}>
-                    {['🧣', '🍯'].map((e, i) => (
-                      <div key={i} style={{ background: theme.colors.card, borderRadius: 8, padding: '8px', border: `1px solid ${theme.colors.accent}22` }}>
-                        <p style={{ fontSize: 22, margin: '0 0 4px', textAlign: 'center' }}>{e}</p>
-                        <p style={{ fontSize: 9, fontWeight: 700, color: theme.colors.text, margin: 0, overflow: 'hidden' }}>Product</p>
-                        <p style={{ fontSize: 10, fontWeight: 900, color: theme.colors.accent, margin: 0 }}>NPR 1,200</p>
+        <>
+          <p style={{ color: 'var(--color-text-secondary)', fontSize: 13, margin: '-0.5rem 0 1.25rem', lineHeight: 1.6 }}>
+            Themes change the color palette of your active template — <strong style={{ color: 'var(--color-text-primary)' }}>{activeTemplate.name}</strong>. Pick a layout first under Templates, then choose your colors here.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+            {SHOP_THEMES.map(theme => {
+              const isActive = activeTheme.id === theme.id
+              const c = theme.colors
+              // Show a mini preview of the ACTIVE template in this theme's colors
+              const tmplId = activeTemplate.id
+              return (
+                <div key={theme.id}
+                  onClick={() => !saving && handleSetTheme(theme)}
+                  style={{
+                    borderRadius: 14, overflow: 'hidden', cursor: saving ? 'wait' : 'pointer',
+                    border: `2px solid ${isActive ? c.accent : 'var(--color-border)'}`,
+                    boxShadow: isActive ? `0 0 0 3px ${c.accent}33` : 'none',
+                    transition: 'all 0.15s', transform: isActive ? 'scale(1.02)' : 'scale(1)',
+                  }}
+                >
+                  {/* Mini shop preview — active template in this theme's colors */}
+                  <div style={{ background: c.bg, padding: '10px', minHeight: 148 }}>
+                    {/* Header strip */}
+                    <div style={{ background: tmplId === 'shanti' || tmplId === 'kailash' ? '#18181b' : c.bg, border: `1px solid ${c.accent}20`, borderRadius: '8px 8px 0 0', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <div style={{ width: 14, height: 14, borderRadius: 4, background: c.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8 }}>🏪</div>
+                        <span style={{ fontSize: 7.5, fontWeight: 800, color: tmplId === 'shanti' || tmplId === 'kailash' ? '#fff' : c.text }}>Shop Name</span>
                       </div>
-                    ))}
-                  </div>
-                  {/* Mini button */}
-                  <div style={{ background: theme.colors.accent, borderRadius: 6, padding: '6px', textAlign: 'center' }}>
-                    <p style={{ color: '#fff', fontSize: 10, fontWeight: 700, margin: 0 }}>Add to Cart</p>
-                  </div>
-                </div>
+                      <div style={{ background: c.accent, borderRadius: 6, padding: '2px 6px' }}>
+                        <span style={{ fontSize: 6.5, fontWeight: 700, color: '#fff' }}>🛒 Bag</span>
+                      </div>
+                    </div>
 
-                {/* Theme info */}
-                <div style={{ padding: '12px 14px', background: 'var(--color-bg-raised)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>{theme.name}</p>
-                    {isActive && <span style={{ fontSize: 10, background: theme.colors.accent, color: '#fff', padding: '2px 7px', borderRadius: 9999, fontWeight: 700 }}>Active</span>}
+                    {/* Hero strip */}
+                    {(tmplId === 'himalayan' || tmplId === 'haven') && (
+                      <div style={{ height: 32, borderRadius: 6, marginBottom: 5, background: `linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.65))`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ color: '#fff', fontSize: 8, fontWeight: 900, letterSpacing: '-0.02em' }}>✦ {activeTemplate.name.toUpperCase()} ✦</span>
+                      </div>
+                    )}
+                    {(tmplId === 'shanti' || tmplId === 'kailash') && (
+                      <div style={{ height: 32, borderRadius: 6, marginBottom: 5, background: '#09090b', border: `1px solid ${c.accent}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', inset: 0, backgroundImage: `radial-gradient(circle, ${c.accent} 0.5px, transparent 1px)`, backgroundSize: '8px 8px', opacity: 0.07 }} />
+                        <span style={{ color: c.accent, fontSize: 8, fontWeight: 800, letterSpacing: '0.1em' }}>✦ DIVINE COLLECTION ✦</span>
+                      </div>
+                    )}
+
+                    {/* Product grid — 3 mini cards in this theme's colors */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+                      {['🧣', '🍯', '👜', '🪔', '📓', '🎨'].map((e, i) => (
+                        <div key={i} style={{
+                          background: tmplId === 'shanti' || tmplId === 'kailash' ? '#27272a' : c.card,
+                          borderRadius: 6, padding: '5px 3px', textAlign: 'center',
+                          border: `1px solid ${c.accent}20`,
+                        }}>
+                          <p style={{ fontSize: 13, margin: '0 0 1px' }}>{e}</p>
+                          <p style={{ fontSize: 5.5, fontWeight: 700, color: c.accent, margin: '0 0 3px' }}>NPR 1,200</p>
+                          <div style={{ background: c.accent, borderRadius: 3, padding: '1px 0' }}>
+                            <span style={{ fontSize: 5, color: '#fff', fontWeight: 700 }}>Add</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: 0 }}>{theme.desc}</p>
+
+                  {/* Theme info */}
+                  <div style={{ padding: '10px 12px', background: 'var(--color-bg-raised)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {/* Color dot swatch */}
+                    <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: c.bg,    border: '1px solid rgba(0,0,0,0.12)' }} />
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: c.accent }} />
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: c.card,  border: '1px solid rgba(0,0,0,0.08)' }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontWeight: 700, fontSize: 12, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{theme.name}</p>
+                      <p style={{ fontSize: 10, color: 'var(--color-text-muted)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{theme.desc}</p>
+                    </div>
+                    {isActive && (
+                      <span style={{ fontSize: 9, background: c.accent, color: '#fff', padding: '2px 7px', borderRadius: 9999, fontWeight: 700, flexShrink: 0 }}>Active</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        </>
       )}
 
-      {/* ── Templates tab ────────────────────────────────────────────────── */}
+      {/* ── Templates tab ─────────────────────────────────────────── */}
       {tab === 'templates' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
           {SHOP_TEMPLATES.map(tmpl => {
             const isActive = activeTemplate.id === tmpl.id
-            const isBoutique = tmpl.id === 'boutique'
             return (
               <div key={tmpl.id}
                 onClick={() => !saving && handleSetTemplate(tmpl)}
@@ -283,32 +357,122 @@ export default function CreateMyShopPage() {
                 }}
               >
                 {/* Template preview */}
-                <div style={{ background: 'var(--color-bg-base)', padding: '1.25rem', minHeight: 160 }}>
-                  {isBoutique ? (
-                    /* Boutique: horizontal strips */
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {['🧣', '🍯', '👜'].map((e, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--color-bg-raised)', borderRadius: 8, padding: '6px 8px', border: '1px solid var(--color-border)' }}>
-                          <span style={{ fontSize: 20 }}>{e}</span>
-                          <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>Product Name</p>
-                            <p style={{ fontSize: 9, color: 'var(--color-brand)', fontWeight: 900, margin: 0 }}>NPR 1,200</p>
-                          </div>
-                          <div style={{ background: 'var(--color-brand)', borderRadius: 5, padding: '3px 7px' }}>
-                            <p style={{ color: '#fff', fontSize: 8, fontWeight: 700, margin: 0 }}>Add</p>
-                          </div>
+                <div style={{ minHeight: 160 }}>
+                  {tmpl.id === 'himalayan' ? (
+                    // Himalayan Store — clean white grid with orange accent
+                    <div style={{ background: '#F9FAFB', padding: '10px' }}>
+                      <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--color-brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>🏔️</div>
+                          <span style={{ fontSize: 8, fontWeight: 800 }}>Shop Name</span>
                         </div>
-                      ))}
+                        <span style={{ fontSize: 7, background: 'var(--color-brand)', color: '#fff', borderRadius: 8, padding: '2px 6px', fontWeight: 700 }}>🛍️ Bag</span>
+                      </div>
+                      <div style={{ height: 36, background: 'linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.6))', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+                        <span style={{ color: '#fff', fontSize: 9, fontWeight: 800 }}>HIMALAYAN STORE</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+                        {['🧣', '🍯', '👜', '🪔', '📓', '🎨'].map((e, i) => (
+                          <div key={i} style={{ background: '#fff', borderRadius: 6, padding: '5px 3px', textAlign: 'center', border: '1px solid #f0f0f0' }}>
+                            <p style={{ fontSize: 14, margin: '0 0 1px' }}>{e}</p>
+                            <p style={{ fontSize: 6, fontWeight: 700, color: '#6b7280', margin: 0 }}>NPR 1,200</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : tmpl.id === 'haven' ? (
+                    // Himalaya Haven — warm serif boutique
+                    <div style={{ background: '#fafaf7', padding: '10px', fontFamily: 'Georgia, serif' }}>
+                      <div style={{ background: '#fff', borderBottom: '1px solid #e7e5e4', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <span style={{ fontSize: 14 }}>🏔️</span>
+                          <span style={{ fontSize: 8, fontWeight: 700, color: '#7c2d12' }}>Shop Name</span>
+                        </div>
+                        <span style={{ fontSize: 7, background: '#7c2d12', color: '#fff', borderRadius: 8, padding: '2px 6px', fontWeight: 700 }}>🛍️ Sacred Bag</span>
+                      </div>
+                      <div style={{ height: 40, background: 'linear-gradient(rgba(0,0,0,0.65),rgba(0,0,0,0.8))', borderRadius: 6, marginBottom: 6, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '5px 8px' }}>
+                        <p style={{ color: '#fbbf24', fontSize: 7, margin: '0 0 2px', letterSpacing: '0.1em' }}>AUTHENTIC GOODS</p>
+                        <p style={{ color: '#fff', fontSize: 10, fontWeight: 700, margin: 0 }}>Himalaya Haven</p>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+                        {[['🧣', 'Pashmina', '2,400'], ['🍯', 'Honey', '850'], ['👜', 'Dhaka Bag', '1,200'], ['🪔', 'Salt Lamp', '1,600']].map(([e, n, p], i) => (
+                          <div key={i} style={{ background: '#fff', borderRadius: 8, overflow: 'hidden' }}>
+                            <div style={{ height: 28, background: 'linear-gradient(135deg,#fff7ed,#fef3c7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{e}</div>
+                            <div style={{ padding: '3px 5px' }}>
+                              <p style={{ fontSize: 6, fontWeight: 600, margin: '0 0 1px' }}>{n}</p>
+                              <p style={{ fontSize: 7, fontWeight: 700, color: '#92400e', margin: 0 }}>NPR {p}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : tmpl.id === 'shanti' ? (
+                    // Shanti Collective — dark zinc & gold
+                    <div style={{ background: '#09090b', padding: '10px' }}>
+                      <div style={{ background: 'rgba(9,9,11,0.9)', borderBottom: '1px solid rgba(234,179,8,0.15)', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <div style={{ width: 14, height: 14, background: '#eab308', color: '#09090b', borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8 }}>☸️</div>
+                          <span style={{ fontSize: 8, fontWeight: 800, color: '#e4e4e7' }}>SHANTI</span>
+                        </div>
+                        <span style={{ fontSize: 7, background: '#eab308', color: '#09090b', borderRadius: 8, padding: '2px 6px', fontWeight: 700 }}>Sanctuary</span>
+                      </div>
+                      <div style={{ background: 'linear-gradient(45deg,#09090b,#18181b)', borderRadius: 6, padding: '8px', marginBottom: 6, border: '1px solid rgba(234,179,8,0.1)', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle, #eab308 0.5px, transparent 1px)', backgroundSize: '10px 10px', opacity: 0.07 }} />
+                        <p style={{ fontSize: 7, color: '#eab308', margin: '0 0 2px', letterSpacing: '0.15em' }}>CURATED WITH INTENTION</p>
+                        <p style={{ fontSize: 10, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.03em' }}>Living <span style={{ color: '#eab308' }}>Offerings</span></p>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+                        {[['🪔', 'Singing Bowl', '4,800'], ['🌿', 'Juniper Incense', '890'], ['🧵', 'Dhaka Topi', '2,650'], ['📿', 'Bodhi Mala', '1,450']].map(([e, n, p], i) => (
+                          <div key={i} style={{ background: '#27272a', borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(234,179,8,0.1)' }}>
+                            <div style={{ height: 28, background: '#3f3f46', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{e}</div>
+                            <div style={{ padding: '3px 5px' }}>
+                              <p style={{ fontSize: 6, fontWeight: 600, color: '#e4e4e7', margin: '0 0 1px', lineHeight: 1.2 }}>{n}</p>
+                              <p style={{ fontSize: 7, fontFamily: 'monospace', fontWeight: 300, color: '#e4e4e7', margin: 0 }}>{p}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : tmpl.id === 'kailash' ? (
+                    // Kailash — cinematic black & gold luxury
+                    <div style={{ background: '#000', padding: '10px' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.8)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <span style={{ fontSize: 14 }}>🕉️</span>
+                          <span style={{ fontSize: 8, fontWeight: 700, color: '#fff', letterSpacing: '0.04em' }}>KAILASH</span>
+                        </div>
+                        <span style={{ fontSize: 7, background: '#eab308', color: '#000', borderRadius: 8, padding: '2px 6px', fontWeight: 800 }}>Sacred</span>
+                      </div>
+                      <div style={{ height: 50, background: 'linear-gradient(rgba(0,0,0,0.75),rgba(0,0,0,0.88))', borderRadius: 6, marginBottom: 6, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '6px 8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'rgba(255,255,255,0.08)', padding: '2px 6px', borderRadius: 8, marginBottom: 3, alignSelf: 'flex-start' }}>
+                          <div style={{ width: 1, height: 6, background: '#eab308' }} />
+                          <span style={{ fontSize: 6, color: '#fff', letterSpacing: '0.1em' }}>SINCE THE TIME OF GODS</span>
+                        </div>
+                        <p style={{ color: '#fff', fontSize: 10, fontWeight: 900, margin: 0, letterSpacing: '-0.04em', lineHeight: 1 }}>WHERE HEAVEN<br/>MEETS EARTH</p>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+                        {[['🏔️', '#451a03'], ['🧿', '#4c1d95'], ['🌿', '#064e3b'], ['🪔', '#451a03'], ['📿', '#4c1d95'], ['🎨', '#064e3b']].map(([e, bg], i) => (
+                          <div key={i} style={{ background: '#111', borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(234,179,8,0.1)' }}>
+                            <div style={{ height: 26, background: `linear-gradient(135deg, ${bg}, #000)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{e}</div>
+                            <div style={{ padding: '2px 4px', display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: 5, color: 'rgba(234,179,8,0.6)' }}>1,200</span>
+                              <span style={{ fontSize: 5, color: '#fff', background: '#27272a', borderRadius: 3, padding: '1px 4px' }}>Claim</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ) : (
-                    /* Grid: 2x2 squares */
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
-                      {['🧣', '🍯', '👜', '🪔', '📓', '🎨'].map((e, i) => (
-                        <div key={i} style={{ background: 'var(--color-bg-raised)', borderRadius: 8, padding: '8px 4px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
-                          <p style={{ fontSize: 18, margin: '0 0 2px' }}>{e}</p>
-                          <p style={{ fontSize: 7, fontWeight: 700, color: 'var(--color-text-muted)', margin: 0 }}>NPR 1,200</p>
-                        </div>
-                      ))}
+                    // fallback grid
+                    <div style={{ background: 'var(--color-bg-base)', padding: '1.25rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+                        {['🧣', '🍯', '👜', '🪔', '📓', '🎨'].map((e, i) => (
+                          <div key={i} style={{ background: 'var(--color-bg-raised)', borderRadius: 8, padding: '8px 4px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                            <p style={{ fontSize: 18, margin: '0 0 2px' }}>{e}</p>
+                            <p style={{ fontSize: 7, fontWeight: 700, color: 'var(--color-text-muted)', margin: 0 }}>NPR 1,200</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -336,8 +500,6 @@ export default function CreateMyShopPage() {
       )}
 
       
-
-      {/* Toast */}
       <Toast message={toast} onClear={() => setToast('')} />
     </PageLayout>
   )

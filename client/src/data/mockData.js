@@ -39,18 +39,32 @@ export const INITIAL_BOT_KEYWORDS = [
 // ─── Shop Templates ───────────────────────────────────────────────────────────
 export const SHOP_TEMPLATES = [
   {
-    id:      'grid',
-    name:    'Market Grid',
-    desc:    'Classic product grid — familiar and easy to browse',
+    id:      'himalayan',
+    name:    'Himalayan Store',
+    desc:    'Clean modern grid with a full-bleed hero & trust bar',
     preview: '▦',
-    features: ['2–4 column responsive grid', 'Square product cards', 'Great for many products'],
+    features: ['Sticky header with chat & cart', 'Full-screen hero section', 'Responsive 2–4 column product grid', 'Great for many products'],
   },
   {
-    id:      'boutique',
-    name:    'Boutique List',
-    desc:    'Horizontal list view — great for showcasing detail',
+    id:      'haven',
+    name:    'Himalaya Haven',
+    desc:    'Warm serif boutique — earthy amber tones, editorial feel',
     preview: '☰',
-    features: ['Full-width horizontal cards', 'More product detail visible', 'Great for fewer, premium items'],
+    features: ['Serif typography & rich warmth', 'Mosaic category showcase', 'Horizontal product cards', 'Best for artisan & lifestyle brands'],
+  },
+  {
+    id:      'shanti',
+    name:    'Shanti Collective',
+    desc:    'Dark editorial — zinc & gold, spiritual collective energy',
+    preview: '◼',
+    features: ['Dark mode zinc & yellow palette', 'Split-screen editorial hero', 'Bold cinematic product cards', 'Best for premium spiritual goods'],
+  },
+  {
+    id:      'kailash',
+    name:    'Kailash',
+    desc:    'Cinematic luxury — black, gold & Playfair Display',
+    preview: '✦',
+    features: ['Full-screen parallax hero', 'Dramatic product showcase', 'Legacy storytelling section', 'Best for ultra-premium collections'],
   },
 ]
 
@@ -64,31 +78,43 @@ export const INITIAL_CATEGORIES = [
   { id: 'general',     label: 'General',     emoji: '📦' },
 ]
 
-// ─── Shop Themes ─────────────────────────────────────────────────────────────
+// ─── Shop Themes (color palettes — work across all templates) ────────────────
 export const SHOP_THEMES = [
   {
     id:    'mountain',
     name:  'Mountain Sunrise',
-    desc:  'Warm terracotta meets misty peaks',
+    desc:  'Warm terracotta & burnt orange',
     colors: { bg: '#FFF8F3', accent: '#D45C2A', text: '#2C1810', card: '#FEF0E7' },
   },
   {
     id:    'bazaar',
     name:  'Rangeen Bazaar',
-    desc:  'Vibrant & festive Nepali market energy',
+    desc:  'Vibrant violet — festive market energy',
     colors: { bg: '#F5F0FF', accent: '#7C3AED', text: '#1E1533', card: '#EDE9FF' },
   },
   {
     id:    'himalaya',
     name:  'Himalayan Mist',
-    desc:  'Cool blues of high-altitude calm',
+    desc:  'Cool cerulean — high-altitude calm',
     colors: { bg: '#F0F7FF', accent: '#1A6DB5', text: '#0D2340', card: '#E1EFFD' },
   },
   {
     id:    'forest',
     name:  'Rhododendron Forest',
-    desc:  'Lush greens of Nepal\'s forests',
+    desc:  'Lush green — Nepal\'s wild highlands',
     colors: { bg: '#F2FAF2', accent: '#2D7A3A', text: '#152318', card: '#E0F5E2' },
+  },
+  {
+    id:    'gold',
+    name:  'Sacred Gold',
+    desc:  'Marigold & deep saffron — temple warmth',
+    colors: { bg: '#FFFBEB', accent: '#B45309', text: '#1C1008', card: '#FEF3C7' },
+  },
+  {
+    id:    'slate',
+    name:  'Midnight Slate',
+    desc:  'Deep charcoal — refined & minimal',
+    colors: { bg: '#F8FAFC', accent: '#334155', text: '#0F172A', card: '#E2E8F0' },
   },
 ]
 
@@ -98,7 +124,8 @@ export const FEATURES = [
   { icon: '🛍️', title: 'Your Own Shop Link', desc: 'Get pasalbot.com/shop/yourname — share it on Instagram bio & Facebook.' },
   { icon: '📦', title: 'Order Tracking',     desc: 'Confirm, deliver, cancel. Full history. Customer profiling from phone numbers.' },
   { icon: '📊', title: 'Sales Dashboard',    desc: 'Revenue, top products, repeat buyers — all in one glance.' },
-  { icon: '🎨', title: 'Custom Themes',      desc: '4 stunning shop themes. Match your brand personality in one tap.' },
+  { icon: '🎨', title: '6 Color Themes',     desc: 'Mountain Sunrise, Rangeen Bazaar, Himalayan Mist and more — swap your palette in one tap.' },
+  { icon: '📐', title: '4 Shop Templates',   desc: 'Himalayan Store, Himalaya Haven, Shanti Collective, Kailash — totally different aesthetics for every brand.' },
   { icon: '⚡', title: '5-Min Onboarding',   desc: 'Add products, set up the bot, go live. Faster than typing your next DM.' },
 ]
 

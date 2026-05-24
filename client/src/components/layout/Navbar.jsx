@@ -9,7 +9,6 @@ const NAV_LINKS = [
   { to: '/products',  label: 'Products'  },
   { to: '/orders',    label: 'Orders'    },
   { to: '/bot',       label: '🤖 Bot'    },
-  { to: '/themes',    label: '🎨 Themes' },
   { to: '/shop-setup', label: 'My Shop'  },
 ]
 
