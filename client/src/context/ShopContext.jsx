@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { SHOP_THEMES, SHOP_TEMPLATES } from '@/data/mockData'
+import { getTheme } from '@/data/themes'
 import {
   productsGetAll, productsCreate, productsUpdate, productsDelete,
   ordersGetAll, ordersCreate, ordersSetStatus, ordersGetStats,
@@ -14,6 +15,14 @@ const ShopContext = createContext(null)
 // "All" is always the first virtual category — never stored in DB
 const ALL_CAT = { _id: 'all', label: 'All', emoji: '🛍️' }
 
+// Notify any open public-shop tabs (or the demo iframe) that data changed.
+function broadcastShopUpdate(slug) {
+  if (!slug || !('BroadcastChannel' in window)) return
+  const ch = new BroadcastChannel('pasalbot_shop_update')
+  ch.postMessage({ slug })
+  ch.close()
+}
+
 export function ShopProvider({ children }) {
   const { user, updateUser } = useAuth()
 
@@ -26,7 +35,7 @@ export function ShopProvider({ children }) {
   const [error,      setError]      = useState('')
   const [previewShop, setPreviewShop] = useState(null)
 
-  const activeTheme    = SHOP_THEMES.find(t => t.id === user?.activeTheme)    || SHOP_THEMES[0]
+  const activeTheme    = getTheme(user?.activeTheme)
   const activeTemplate = SHOP_TEMPLATES.find(t => t.id === user?.activeTemplate) || SHOP_TEMPLATES[0]
 
   // Load all shop data when user logs in
@@ -61,30 +70,35 @@ export function ShopProvider({ children }) {
   const setTheme = useCallback(async (theme) => {
     const updated = await updateShop({ activeTheme: theme.id })
     updateUser(updated)
-  }, [updateUser])
+    broadcastShopUpdate(user?.shop?.slug)
+  }, [updateUser, user?.shop?.slug])
 
   const setTemplate = useCallback(async (template) => {
     const updated = await updateShop({ activeTemplate: template.id })
     updateUser(updated)
-  }, [updateUser])
+    broadcastShopUpdate(user?.shop?.slug)
+  }, [updateUser, user?.shop?.slug])
 
   // ── Products ───────────────────────────────────────────────────────────────
   const addProduct = useCallback(async (data) => {
     const product = await productsCreate(data)
     setProducts(prev => [product, ...prev])
-  }, [])
+    broadcastShopUpdate(user?.shop?.slug)
+  }, [user?.shop?.slug])
 
   const toggleProductVisibility = useCallback(async (id) => {
     const product = products.find(p => p._id === id)
     if (!product) return
     const updated = await productsUpdate(id, { visible: !product.visible })
     setProducts(prev => prev.map(p => p._id === id ? updated : p))
-  }, [products])
+    broadcastShopUpdate(user?.shop?.slug)
+  }, [products, user?.shop?.slug])
 
   const deleteProduct = useCallback(async (id) => {
     await productsDelete(id)
     setProducts(prev => prev.filter(p => p._id !== id))
-  }, [])
+    broadcastShopUpdate(user?.shop?.slug)
+  }, [user?.shop?.slug])
 
   // ── Orders ─────────────────────────────────────────────────────────────────
   const addOrder = useCallback(async (data) => {

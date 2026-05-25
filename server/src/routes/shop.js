@@ -23,6 +23,8 @@ router.get('/:slug', async (req, res) => {
         name:                  user.shop.name,
         slug:                  user.shop.slug,
         logo:                  user.shop.logo,
+        logoUrl:               user.shop.logoUrl,
+        heroBgUrl:             user.shop.heroBgUrl,
         description:           user.shop.description,
         location:              user.shop.location,
         phone:                 user.shop.phone,

@@ -20,6 +20,8 @@ const userSchema = new mongoose.Schema(
       name:        { type: String, default: 'My Pasal' },
       slug:        { type: String, unique: true, sparse: true },
       logo:        { type: String, default: '🏪' },
+      logoUrl:     { type: String, default: '' },
+      heroBgUrl:   { type: String, default: '' },
       description: { type: String, default: '' },
       location:    { type: String, default: '' },
       phone:       { type: String, default: '' },

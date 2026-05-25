@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useShop } from '@/context/ShopContext'
 import { useAuth } from '@/context/AuthContext'
 import { useUI } from '@/context/UIContext'
@@ -7,6 +7,81 @@ import { Card, SectionHeader, Input, Textarea, Toast } from '@/components/ui/ind
 import { Button } from '@/components/ui/Button'
 import { SHOP_THEMES, SHOP_TEMPLATES } from '@/data/mockData'
 import { updateShop } from '@/services/api'
+
+// ── Cloudinary upload (same config as ProductForm) ────────────────────────────
+const CLOUD_NAME    = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+const CLOUDINARY_ENABLED = Boolean(CLOUD_NAME && UPLOAD_PRESET)
+
+async function uploadToCloudinary(file) {
+  const fd = new FormData()
+  fd.append('file', file)
+  fd.append('upload_preset', UPLOAD_PRESET)
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: fd })
+  if (!res.ok) throw new Error('Upload failed')
+  return (await res.json()).secure_url
+}
+
+// ── Small image uploader widget ───────────────────────────────────────────────
+function ImageUploadField({ label, hint, value, onChange }) {
+  const [uploading, setUploading] = useState(false)
+  const [error,     setError]     = useState('')
+  const ref = useRef(null)
+
+  const inp = {
+    width: '100%', background: 'var(--color-bg-base)', border: '1px solid var(--color-border)',
+    borderRadius: 8, padding: '7px 10px', color: 'var(--color-text-primary)',
+    fontSize: 13, fontFamily: 'var(--font-body)', outline: 'none', boxSizing: 'border-box',
+  }
+
+  const handleFile = async (file) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) { setError('Please select an image.'); return }
+    if (file.size > 10 * 1024 * 1024) { setError('Image must be under 10 MB.'); return }
+    if (!CLOUDINARY_ENABLED) { setError('Add Cloudinary env vars to enable uploads.'); return }
+    setError(''); setUploading(true)
+    try {
+      const url = await uploadToCloudinary(file)
+      onChange(url)
+    } catch { setError('Upload failed. Check Cloudinary config.') }
+    finally { setUploading(false) }
+  }
+
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 6, fontWeight: 600 }}>{label}</label>
+      {hint && <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: '-2px 0 8px' }}>{hint}</p>}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        {value && (
+          <img src={value} alt="preview" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--color-border)', flexShrink: 0 }} />
+        )}
+        <div style={{ flex: 1, minWidth: 140 }}>
+          <input
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder="Paste image URL, or upload →"
+            style={{ ...inp, marginBottom: 6 }}
+          />
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => ref.current?.click()}
+              disabled={uploading}
+              style={{ padding: '5px 12px', fontSize: 12, fontWeight: 700, borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-base)', color: 'var(--color-text-primary)', cursor: 'pointer', fontFamily: 'var(--font-body)', opacity: uploading ? 0.5 : 1 }}
+            >
+              {uploading ? 'Uploading…' : '📷 Upload'}
+            </button>
+            {value && (
+              <button type="button" onClick={() => onChange('')} style={{ padding: '5px 12px', fontSize: 12, fontWeight: 700, borderRadius: 7, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.06)', color: '#EF4444', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Remove</button>
+            )}
+          </div>
+          {error && <p style={{ color: '#EF4444', fontSize: 11, margin: '4px 0 0' }}>{error}</p>}
+        </div>
+      </div>
+      <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleFile(e.target.files[0])} />
+    </div>
+  )
+}
 
 const TABS = [
   { id: 'details',   label: '📝 Details'   },
@@ -26,6 +101,8 @@ export default function CreateMyShopPage() {
   const [details, setDetails] = useState({
     name: user?.shop?.name || '',
     logo: user?.shop?.logo || '🏪',
+    logoUrl: user?.shop?.logoUrl || '',
+    heroBgUrl: user?.shop?.heroBgUrl || '',
     description: user?.shop?.description || '',
     location: user?.shop?.location || '',
     phone: user?.shop?.phone || '',
@@ -58,6 +135,12 @@ export default function CreateMyShopPage() {
     try {
       const updated = await updateShop(details)
       updateUser(updated)
+      // Notify any open public-shop tab / demo iframe to re-fetch without a page refresh
+      if ('BroadcastChannel' in window && user?.shop?.slug) {
+        const ch = new BroadcastChannel('pasalbot_shop_update')
+        ch.postMessage({ slug: user.shop.slug })
+        ch.close()
+      }
       showToast('Shop details updated!')
     } catch {
       showToast('Failed to save details.')
@@ -174,34 +257,33 @@ export default function CreateMyShopPage() {
               <Input label="Phone Number" value={details.phone} onChange={e => setDetails({ ...details, phone: e.target.value })} placeholder="98XXXXXXXX" />
               <Input label="WhatsApp Number" value={details.whatsapp} onChange={e => setDetails({ ...details, whatsapp: e.target.value })} placeholder="98XXXXXXXX" />
               <Input label="Location / Address" value={details.location} onChange={e => setDetails({ ...details, location: e.target.value })} placeholder="e.g. New Road, Kathmandu" />
-              <div>
-                <label style={{ display: 'block', fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Shop Category / Type</label>
-                <select
-                  value={details.shopType}
-                  onChange={e => setDetails({ ...details, shopType: e.target.value })}
-                  style={{ width: '100%', background: 'var(--color-bg-base)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '7px 10px', color: 'var(--color-text-primary)', fontSize: 13, fontFamily: 'var(--font-body)', outline: 'none', boxSizing: 'border-box' }}
-                >
-                  <option value="">— Select type —</option>
-                  <option value="Clothing & Fashion">👗 Clothing & Fashion</option>
-                  <option value="Food & Beverages">🍵 Food & Beverages</option>
-                  <option value="Handicraft & Art">🎨 Handicraft & Art</option>
-                  <option value="Electronics">⚡ Electronics</option>
-                  <option value="Beauty & Personal Care">💄 Beauty & Personal Care</option>
-                  <option value="Home & Living">🏠 Home & Living</option>
-                  <option value="Books & Stationery">📚 Books & Stationery</option>
-                  <option value="Jewellery & Accessories">💍 Jewellery & Accessories</option>
-                  <option value="Health & Wellness">🌿 Health & Wellness</option>
-                  <option value="Gifts & Collectibles">🎁 Gifts & Collectibles</option>
-                  <option value="Sports & Outdoors">⛺ Sports & Outdoors</option>
-                  <option value="Other">📦 Other</option>
-                </select>
-              </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
               <Input label="Shop Tagline" value={details.tagline} onChange={e => setDetails({ ...details, tagline: e.target.value })} placeholder="e.g. Handmade with love in Nepal" />
               <Input label="Website URL" value={details.website} onChange={e => setDetails({ ...details, website: e.target.value })} placeholder="https://yourshop.com" />
             </div>
             <Textarea label="Short Description" value={details.description} onChange={e => setDetails({ ...details, description: e.target.value })} placeholder="Tell customers what you sell..." />
+          </Card>
+
+          <Card>
+            <SectionHeader title="Shop Logo & Hero Image" />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem' }}>
+              <ImageUploadField
+                label="Shop Logo Image"
+                hint="Replaces the emoji logo. Recommended: square, min 200×200px."
+                value={details.logoUrl}
+                onChange={v => setDetails(d => ({ ...d, logoUrl: v }))}
+              />
+              <ImageUploadField
+                label="Homepage Hero Background"
+                hint="Shown as the full-width background on your shop's homepage. Recommended: 1600×900px."
+                value={details.heroBgUrl}
+                onChange={v => setDetails(d => ({ ...d, heroBgUrl: v }))}
+              />
+            </div>
+            <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: '12px 0 0' }}>
+              If no image is set, your emoji logo ({details.logo || '🏪'}) and a default background will be used.
+            </p>
           </Card>
 
           <Card>

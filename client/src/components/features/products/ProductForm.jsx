@@ -149,6 +149,12 @@ export function ProductForm({ onClose, onManageCategories }) {
     if (uploading)                                           return setError('Please wait for the image to finish uploading.')
     setError('')
     setSaving(true)
+
+    // Resolve the selected category label so the server stores "Electronics"
+    // not just the MongoDB _id (the Product model stores category as a string label)
+    const selectedCat = editableCategories.find(c => c._id === form.categoryId)
+    const categoryLabel = selectedCat ? selectedCat.label : 'General'
+
     try {
       await addProduct({
         name:        form.name.trim(),
@@ -157,7 +163,7 @@ export function ProductForm({ onClose, onManageCategories }) {
         image:       form.image,
         imageUrl:    form.imageUrl || '',
         description: form.description.trim(),
-        categoryId:  form.categoryId || null,
+        category:    categoryLabel,
         visible:     true,
       })
       onClose()

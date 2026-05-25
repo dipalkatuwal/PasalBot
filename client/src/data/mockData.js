@@ -37,36 +37,10 @@ export const INITIAL_BOT_KEYWORDS = [
 ]
 
 // ─── Shop Templates ───────────────────────────────────────────────────────────
-export const SHOP_TEMPLATES = [
-  {
-    id:      'himalayan',
-    name:    'Himalayan Store',
-    desc:    'Clean modern grid with a full-bleed hero & trust bar',
-    preview: '▦',
-    features: ['Sticky header with chat & cart', 'Full-screen hero section', 'Responsive 2–4 column product grid', 'Great for many products'],
-  },
-  {
-    id:      'haven',
-    name:    'Himalaya Haven',
-    desc:    'Warm serif boutique — earthy amber tones, editorial feel',
-    preview: '☰',
-    features: ['Serif typography & rich warmth', 'Mosaic category showcase', 'Horizontal product cards', 'Best for artisan & lifestyle brands'],
-  },
-  {
-    id:      'shanti',
-    name:    'Shanti Collective',
-    desc:    'Dark editorial — zinc & gold, spiritual collective energy',
-    preview: '◼',
-    features: ['Dark mode zinc & yellow palette', 'Split-screen editorial hero', 'Bold cinematic product cards', 'Best for premium spiritual goods'],
-  },
-  {
-    id:      'kailash',
-    name:    'Kailash',
-    desc:    'Cinematic luxury — black, gold & Playfair Display',
-    preview: '✦',
-    features: ['Full-screen parallax hero', 'Dramatic product showcase', 'Legacy storytelling section', 'Best for ultra-premium collections'],
-  },
-]
+// ─── Shop Templates — now managed in templates/index.js ──────────────────────
+// Kept as a re-export so existing imports of SHOP_TEMPLATES from mockData still work.
+// To add/remove a template, edit templates/index.js — not here.
+export { SHOP_TEMPLATES } from '@/components/features/shop/templates/index'
 
 // ─── Default Categories (used as fallback before API loads) ──────────────────
 export const INITIAL_CATEGORIES = [
@@ -78,45 +52,9 @@ export const INITIAL_CATEGORIES = [
   { id: 'general',     label: 'General',     emoji: '📦' },
 ]
 
-// ─── Shop Themes (color palettes — work across all templates) ────────────────
-export const SHOP_THEMES = [
-  {
-    id:    'mountain',
-    name:  'Mountain Sunrise',
-    desc:  'Warm terracotta & burnt orange',
-    colors: { bg: '#FFF8F3', accent: '#D45C2A', text: '#2C1810', card: '#FEF0E7' },
-  },
-  {
-    id:    'bazaar',
-    name:  'Rangeen Bazaar',
-    desc:  'Vibrant violet — festive market energy',
-    colors: { bg: '#F5F0FF', accent: '#7C3AED', text: '#1E1533', card: '#EDE9FF' },
-  },
-  {
-    id:    'himalaya',
-    name:  'Himalayan Mist',
-    desc:  'Cool cerulean — high-altitude calm',
-    colors: { bg: '#F0F7FF', accent: '#1A6DB5', text: '#0D2340', card: '#E1EFFD' },
-  },
-  {
-    id:    'forest',
-    name:  'Rhododendron Forest',
-    desc:  'Lush green — Nepal\'s wild highlands',
-    colors: { bg: '#F2FAF2', accent: '#2D7A3A', text: '#152318', card: '#E0F5E2' },
-  },
-  {
-    id:    'gold',
-    name:  'Sacred Gold',
-    desc:  'Marigold & deep saffron — temple warmth',
-    colors: { bg: '#FFFBEB', accent: '#B45309', text: '#1C1008', card: '#FEF3C7' },
-  },
-  {
-    id:    'slate',
-    name:  'Midnight Slate',
-    desc:  'Deep charcoal — refined & minimal',
-    colors: { bg: '#F8FAFC', accent: '#334155', text: '#0F172A', card: '#E2E8F0' },
-  },
-]
+// ─── Shop Themes — now managed in @/data/themes.js ───────────────────────────
+// Kept as a re-export so existing imports of SHOP_THEMES from mockData still work.
+export { SHOP_THEMES } from '@/data/themes'
 
 // ─── Landing – Features ───────────────────────────────────────────────────────
 export const FEATURES = [

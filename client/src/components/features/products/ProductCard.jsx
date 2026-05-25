@@ -17,7 +17,16 @@ export function ProductCard({ product }) {
       gap:           '0.5rem',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <span style={{ fontSize: 40 }}>{product.image}</span>
+        {/* Product image or emoji */}
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover', border: '1px solid var(--color-border)' }}
+            onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'block' }}
+          />
+        ) : null}
+        <span style={{ fontSize: 40, display: product.imageUrl ? 'none' : 'block' }}>{product.image}</span>
         <button
           onClick={() => toggleProductVisibility(product._id)}
           style={{

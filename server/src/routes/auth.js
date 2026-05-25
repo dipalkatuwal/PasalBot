@@ -119,8 +119,10 @@ router.get('/me', protect, (req, res) => {
 // ── PATCH /api/auth/shop ─────────────────────────────────────────────────────
 router.patch('/shop', protect, async (req, res) => {
   const { 
-    name, description, logo, activeTheme, activeTemplate,
-    location, phone, deliveryTime, deliveryAreas, paymentMethods,
+    name, description, logo, logoUrl, heroBgUrl,
+    activeTheme, activeTemplate,
+    location, phone, whatsapp, website, tagline,
+    deliveryTime, deliveryAreas, paymentMethods,
     returnPolicy, howToOrder, businessHours, socialLinks, freeDeliveryThreshold
   } = req.body
   
@@ -138,12 +140,19 @@ router.patch('/shop', protect, async (req, res) => {
     }
     if (description !== undefined) updates['shop.description'] = description
     if (logo)                      updates['shop.logo']        = logo
+    if (logoUrl  !== undefined)    updates['shop.logoUrl']     = logoUrl
+    if (heroBgUrl !== undefined)   updates['shop.heroBgUrl']   = heroBgUrl
     if (activeTheme)               updates['activeTheme']      = activeTheme
     if (activeTemplate)            updates['activeTemplate']   = activeTemplate
     
-    // New fields
+    // Contact & branding fields
     if (location !== undefined)      updates['shop.location']      = location
     if (phone !== undefined)         updates['shop.phone']         = phone
+    if (whatsapp !== undefined)      updates['shop.whatsapp']      = whatsapp
+    if (website !== undefined)       updates['shop.website']       = website
+    if (tagline !== undefined)       updates['shop.tagline']       = tagline
+
+    // Delivery & policy fields
     if (deliveryTime !== undefined)  updates['shop.deliveryTime']  = deliveryTime
     if (deliveryAreas !== undefined) updates['shop.deliveryAreas'] = deliveryAreas
     if (paymentMethods !== undefined) updates['shop.paymentMethods'] = paymentMethods
