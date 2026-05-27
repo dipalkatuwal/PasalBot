@@ -9,7 +9,9 @@ router.use(protect)
 // GET /api/products
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find({ shopId: req.user._id }).sort({ createdAt: -1 })
+    const products = await Product.find({ shopId: req.user._id })
+      .sort({ createdAt: -1 })
+      .lean()
     res.json(products)
   } catch {
     res.status(500).json({ message: 'Failed to fetch products.' })

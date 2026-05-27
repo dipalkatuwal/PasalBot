@@ -59,15 +59,25 @@ userSchema.methods.comparePassword = async function (candidate) {
   return bcrypt.compare(candidate, this.password)
 }
 
-// Auto-generate slug from shop name if not set
+// Auto-generate slug from shop name on first save
+// NOTE: slug updates on name change are handled in the auth route to allow
+// conflict-checking before the write — don't regenerate here on update.
 userSchema.pre('save', function (next) {
-  if (!this.shop.slug && this.shop.name) {
-    this.shop.slug = this.shop.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
+  if (this.isNew && !this.shop.slug && this.shop.name) {
+    this.shop.slug = slugify(this.shop.name)
   }
   next()
 })
+
+/**
+ * Shared slug utility — used in both the model hook and the auth route.
+ * Exported so the route can reuse it without reimplementing the same regex.
+ */
+export function slugify(name) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
 
 export const User = mongoose.model('User', userSchema)

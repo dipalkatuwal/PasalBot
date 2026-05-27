@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { SHOP_THEMES, SHOP_TEMPLATES } from '@/data/mockData'
+import { SHOP_TEMPLATES } from '@/data/mockData'
 import { getTheme } from '@/data/themes'
+import { ErrorToast } from '@/components/ui/ErrorToast'
 import {
   productsGetAll, productsCreate, productsUpdate, productsDelete,
   ordersGetAll, ordersCreate, ordersSetStatus, ordersGetStats,
@@ -26,13 +27,13 @@ function broadcastShopUpdate(slug) {
 export function ShopProvider({ children }) {
   const { user, updateUser } = useAuth()
 
-  const [products,   setProducts]   = useState([])
-  const [orders,     setOrders]     = useState([])
-  const [keywords,   setKeywords]   = useState([])
-  const [categories, setCategories] = useState([])
-  const [stats,      setStats]      = useState({ total: 0, pending: 0, delivered: 0, revenue: 0, weekOrders: 0 })
-  const [loading,    setLoading]    = useState(true)
-  const [error,      setError]      = useState('')
+  const [products,    setProducts]   = useState([])
+  const [orders,      setOrders]     = useState([])
+  const [keywords,    setKeywords]   = useState([])
+  const [categories,  setCategories] = useState([])
+  const [stats,       setStats]      = useState({ total: 0, pending: 0, delivered: 0, revenue: 0, weekOrders: 0 })
+  const [loading,     setLoading]    = useState(true)
+  const [error,       setError]      = useState('')
   const [previewShop, setPreviewShop] = useState(null)
 
   const activeTheme    = getTheme(user?.activeTheme)
@@ -41,8 +42,6 @@ export function ShopProvider({ children }) {
   // Load all shop data when user logs in
   useEffect(() => {
     if (!user) {
-      // Only set loading to false if we're NOT currently waiting for auth
-      // This prevents "Empty State" flicker on refresh
       setLoading(false)
       return
     }
@@ -65,6 +64,39 @@ export function ShopProvider({ children }) {
       .catch(() => setError('Failed to load shop data. Please refresh.'))
       .finally(() => setLoading(false))
   }, [user?.id])
+
+  // ── Poll for new orders every 30s ─────────────────────────────────────────
+  useEffect(() => {
+    if (!user) return
+
+    const refresh = () => {
+      Promise.all([ordersGetAll(), ordersGetStats()])
+        .then(([ords, st]) => {
+          setOrders(ords)
+          setStats(st)
+        })
+        .catch(() => {}) // silent — don't show error on background poll
+    }
+
+    const interval = setInterval(refresh, 30_000)
+    return () => clearInterval(interval)
+  }, [user?.id])
+
+  // ── BroadcastChannel: instant refresh when public shop places an order ─────
+  useEffect(() => {
+    if (!user || !('BroadcastChannel' in window)) return
+    const ch = new BroadcastChannel('pasalbot_new_order')
+    ch.onmessage = (e) => {
+      if (e.data?.shopSlug && e.data.shopSlug !== user?.shop?.slug) return
+      Promise.all([ordersGetAll(), ordersGetStats()])
+        .then(([ords, st]) => {
+          setOrders(ords)
+          setStats(st)
+        })
+        .catch(() => {})
+    }
+    return () => ch.close()
+  }, [user?.id, user?.shop?.slug])
 
   // ── Shop settings ──────────────────────────────────────────────────────────
   const setTheme = useCallback(async (theme) => {
@@ -93,6 +125,13 @@ export function ShopProvider({ children }) {
     setProducts(prev => prev.map(p => p._id === id ? updated : p))
     broadcastShopUpdate(user?.shop?.slug)
   }, [products, user?.shop?.slug])
+
+  const updateProduct = useCallback(async (id, data) => {
+    const updated = await productsUpdate(id, data)
+    setProducts(prev => prev.map(p => p._id === id ? updated : p))
+    broadcastShopUpdate(user?.shop?.slug)
+    return updated
+  }, [user?.shop?.slug])
 
   const deleteProduct = useCallback(async (id) => {
     await productsDelete(id)
@@ -141,10 +180,10 @@ export function ShopProvider({ children }) {
   const allCategories = [ALL_CAT, ...categories]
 
   const visibleProducts = products.filter(p => p.visible)
-  const baseShop = user?.shop || { 
-    name: 'My Pasal', 
-    slug: '', 
-    logo: '🏪', 
+  const baseShop = user?.shop || {
+    name: 'My Pasal',
+    slug: '',
+    logo: '🏪',
     description: '',
     location: '',
     phone: '',
@@ -155,7 +194,7 @@ export function ShopProvider({ children }) {
     howToOrder: 'Order via the shop bot or DM us',
     businessHours: '10 AM - 8 PM',
     socialLinks: { facebook: '', instagram: '' },
-    freeDeliveryThreshold: 0
+    freeDeliveryThreshold: 0,
   }
 
   const shop = previewShop || baseShop
@@ -166,7 +205,7 @@ export function ShopProvider({ children }) {
       shop, activeTheme, setTheme, activeTemplate, setTemplate,
       setPreviewShop,
       // products
-      products, visibleProducts, addProduct, toggleProductVisibility, deleteProduct,
+      products, visibleProducts, addProduct, updateProduct, toggleProductVisibility, deleteProduct,
       // orders
       orders, addOrder, updateOrderStatus,
       // keywords
@@ -177,16 +216,7 @@ export function ShopProvider({ children }) {
       // stats + loading
       stats, loading, error,
     }}>
-      {error && (
-        <div style={{
-          position: 'fixed', bottom: 20, right: 20, background: '#fee2e2',
-          color: '#991b1b', padding: '12px 20px', borderRadius: 8,
-          border: '1px solid #f87171', fontSize: 14, fontWeight: 600, zIndex: 9999,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-        }}>
-          ⚠️ {error}
-        </div>
-      )}
+      <ErrorToast message={error} />
       {children}
     </ShopContext.Provider>
   )

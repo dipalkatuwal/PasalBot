@@ -3,6 +3,7 @@ import {
   ProblemSolution,
   FeaturesGrid,
   HowItWorks,
+  LiveDemos,
   PricingSection,
   CTABanner,
 } from '@/components/features/landing/sections'
@@ -14,6 +15,7 @@ export default function LandingPage() {
       <ProblemSolution />
       <FeaturesGrid />
       <HowItWorks />
+      <LiveDemos />
       <PricingSection />
       <CTABanner />
     </div>

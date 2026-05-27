@@ -66,12 +66,12 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.75rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1.75rem' }}>
         {statCards.map(s => <StatCard key={s.label} {...s} />)}
       </div>
 
       {/* Main grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '1.5rem' }}>
         {/* Recent Orders */}
         <Card>
           <SectionHeader
@@ -116,19 +116,23 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Bot Activity — real order data */}
+      {/* Shop Summary */}
       <Card style={{ marginTop: '1.5rem' }}>
         <SectionHeader title="📊 Shop Summary" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '1rem' }}>
           {[
-            [stats.total,     'Total Orders'],
-            [stats.pending,   'Pending'],
-            [stats.delivered, 'Delivered'],
-            [formatNPR(stats.revenue, false), 'Revenue (NPR)'],
-          ].map(([v, l]) => (
-            <div key={l} style={{ background: 'var(--color-bg-base)', borderRadius: 'var(--radius-md)', padding: '1rem', textAlign: 'center' }}>
-              <p style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 700, color: 'var(--color-brand)', margin: '0 0 4px' }}>{v}</p>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: 12, margin: 0 }}>{l}</p>
+            { value: stats.total,                      label: 'Total Orders',  desc: 'All time orders received',         icon: '📦', color: 'var(--color-brand)' },
+            { value: stats.pending,                    label: 'Pending',       desc: 'Call verification needed',         icon: '📞', color: '#F97316' },
+            { value: stats.confirmed ?? orders.filter(o => o.status === 'Confirmed').length, label: 'Confirmed', desc: 'Verified — on the way', icon: '✅', color: '#3B82F6' },
+            { value: stats.delivered,                  label: 'Delivered',     desc: 'Successfully reached customer',    icon: '💰', color: '#10B981' },
+            { value: orders.filter(o => o.status === 'Cancelled').length, label: 'Cancelled', desc: 'Discarded before delivery', icon: '❌', color: '#EF4444' },
+            { value: formatNPR(stats.revenue),          label: 'Revenue',         desc: 'From delivered orders only',   icon: '🏦', color: '#8B5CF6' },
+          ].map(({ value, label, desc, icon, color }) => (
+            <div key={label} style={{ background: 'var(--color-bg-base)', borderRadius: 'var(--radius-md)', padding: '1rem', textAlign: 'center', border: '1px solid var(--color-border)' }}>
+              <p style={{ fontSize: 20, margin: '0 0 4px' }}>{icon}</p>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 700, color, margin: '0 0 4px' }}>{value}</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)', margin: '0 0 3px' }}>{label}</p>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: 11, margin: 0 }}>{desc}</p>
             </div>
           ))}
         </div>

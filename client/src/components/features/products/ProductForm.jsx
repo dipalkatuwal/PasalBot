@@ -1,14 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useShop } from '@/context/ShopContext'
 import { Input } from '@/components/ui/index.jsx'
 import { Button } from '@/components/ui/Button'
 
 // ── Cloudinary unsigned upload ────────────────────────────────────────────────
-// Set these two vars in client/.env to enable device image uploads:
-//   VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
-//   VITE_CLOUDINARY_UPLOAD_PRESET=your_unsigned_preset
-// Create a free account at cloudinary.com → Settings → Upload → Add upload preset
-// Set the preset to "Unsigned" and optionally set a folder like "pasalbot"
 const CLOUD_NAME    = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 const CLOUDINARY_ENABLED = Boolean(CLOUD_NAME && UPLOAD_PRESET)
@@ -47,15 +42,35 @@ const DESC_SNIPPETS = [
   { label: '🚚 Shipping',       text: '🚚 Shipping\nDispatched within  days.' },
 ]
 
-export function ProductForm({ onClose, onManageCategories }) {
-  const { addProduct, categories } = useShop()
+// product prop = existing product when editing, null/undefined when adding
+export function ProductForm({ onClose, onManageCategories, product: editProduct }) {
+  const { addProduct, updateProduct, categories } = useShop()
   const editableCategories = categories.filter(c => c._id !== 'all')
+  const isEditing = Boolean(editProduct)
 
-  const [form,        setForm]        = useState({ ...INITIAL_FORM, categoryId: editableCategories[0]?._id || '' })
+  // Resolve initial categoryId from the product's category label
+  const initialCategoryId = () => {
+    if (!editProduct) return editableCategories[0]?._id || ''
+    const match = editableCategories.find(
+      c => c.label.toLowerCase() === editProduct.category?.toLowerCase()
+    )
+    return match?._id || editableCategories[0]?._id || ''
+  }
+
+  const [form,        setForm]        = useState(() => isEditing ? {
+    name:        editProduct.name        || '',
+    price:       editProduct.price       ?? '',
+    stock:       editProduct.stock       ?? '',
+    image:       editProduct.image       || '📦',
+    imageUrl:    editProduct.imageUrl    || '',
+    description: editProduct.description || '',
+    categoryId:  initialCategoryId(),
+  } : { ...INITIAL_FORM, categoryId: editableCategories[0]?._id || '' })
+
   const [saving,      setSaving]      = useState(false)
   const [error,       setError]       = useState('')
-  const [imgMode,     setImgMode]     = useState('upload')   // 'upload' | 'emoji'
-  const [imgPreview,  setImgPreview]  = useState('')
+  const [imgMode,     setImgMode]     = useState(editProduct?.imageUrl ? 'upload' : 'upload')
+  const [imgPreview,  setImgPreview]  = useState(editProduct?.imageUrl || '')
   const [uploading,   setUploading]   = useState(false)
   const [uploadPct,   setUploadPct]   = useState(0)
   const [descFocused, setDescFocused] = useState(false)
@@ -73,13 +88,10 @@ export function ProductForm({ onClose, onManageCategories }) {
     if (file.size > 10 * 1024 * 1024) return setError('Image must be under 10 MB.')
     setError('')
 
-    // Show local preview immediately
     const localUrl = URL.createObjectURL(file)
     setImgPreview(localUrl)
 
     if (!CLOUDINARY_ENABLED) {
-      // No Cloudinary configured — keep preview as data URL, store empty imageUrl
-      // (seller sees the emoji fallback on public shop until Cloudinary is set up)
       setError('⚠️ Image preview shown but not saved — add VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET to client/.env to enable uploads.')
       return
     }
@@ -87,7 +99,6 @@ export function ProductForm({ onClose, onManageCategories }) {
     setUploading(true)
     setUploadPct(10)
     try {
-      // Simulate progress ticks while uploading
       const tick = setInterval(() => setUploadPct(p => Math.min(p + 12, 85)), 400)
       const url = await uploadToCloudinary(file)
       clearInterval(tick)
@@ -95,8 +106,7 @@ export function ProductForm({ onClose, onManageCategories }) {
       set('imageUrl', url)
       setImgPreview(url)
     } catch {
-      setImgPreview('')
-      set('imageUrl', '')
+      setImgPreview(form.imageUrl || '')
       setError('Upload failed. Check your Cloudinary config or try again.')
     } finally {
       setUploading(false)
@@ -150,22 +160,25 @@ export function ProductForm({ onClose, onManageCategories }) {
     setError('')
     setSaving(true)
 
-    // Resolve the selected category label so the server stores "Electronics"
-    // not just the MongoDB _id (the Product model stores category as a string label)
     const selectedCat = editableCategories.find(c => c._id === form.categoryId)
     const categoryLabel = selectedCat ? selectedCat.label : 'General'
 
+    const payload = {
+      name:        form.name.trim(),
+      price:       +form.price,
+      stock:       +form.stock || 0,
+      image:       form.image,
+      imageUrl:    form.imageUrl || '',
+      description: form.description.trim(),
+      category:    categoryLabel,
+    }
+
     try {
-      await addProduct({
-        name:        form.name.trim(),
-        price:       +form.price,
-        stock:       +form.stock || 0,
-        image:       form.image,
-        imageUrl:    form.imageUrl || '',
-        description: form.description.trim(),
-        category:    categoryLabel,
-        visible:     true,
-      })
+      if (isEditing) {
+        await updateProduct(editProduct._id, payload)
+      } else {
+        await addProduct({ ...payload, visible: true })
+      }
       onClose()
     } catch {
       setError('Failed to save. Please try again.')
@@ -190,10 +203,13 @@ export function ProductForm({ onClose, onManageCategories }) {
 
   return (
     <div style={{
-      background: 'var(--color-bg-raised)', border: '1px solid var(--color-brand)',
+      background: 'var(--color-bg-raised)',
+      border: `1px solid ${isEditing ? 'var(--color-border)' : 'var(--color-brand)'}`,
       borderRadius: 'var(--radius-lg)', padding: '1.5rem', marginBottom: '1.5rem',
     }}>
-      <h3 style={{ fontWeight: 700, fontSize: 16, margin: '0 0 1.25rem' }}>New Product</h3>
+      <h3 style={{ fontWeight: 700, fontSize: 16, margin: '0 0 1.25rem' }}>
+        {isEditing ? `✏️ Edit Product` : 'New Product'}
+      </h3>
 
       {/* ── Row 1: Name, Price, Stock, Category ─────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
@@ -244,7 +260,6 @@ export function ProductForm({ onClose, onManageCategories }) {
                 <>
                   <div style={{ fontSize: 24 }}>⏳</div>
                   <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', margin: 0 }}>Uploading… {uploadPct}%</p>
-                  {/* Progress bar */}
                   <div style={{ position: 'absolute', bottom: 0, left: 0, height: 3, width: `${uploadPct}%`, background: 'var(--color-brand)', transition: 'width 0.4s ease', borderRadius: 2 }} />
                 </>
               ) : imgPreview ? (
@@ -374,7 +389,7 @@ export function ProductForm({ onClose, onManageCategories }) {
 
       <div style={{ display: 'flex', gap: '0.75rem' }}>
         <Button onClick={handleSubmit} disabled={saving || uploading}>
-          {saving ? 'Saving…' : uploading ? 'Uploading image…' : 'Save Product'}
+          {saving ? 'Saving…' : uploading ? 'Uploading image…' : isEditing ? 'Save Changes' : 'Save Product'}
         </Button>
         <Button variant="ghost" onClick={onClose}>Cancel</Button>
       </div>

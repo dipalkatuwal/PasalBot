@@ -11,9 +11,27 @@ import { CategoryManager } from '@/components/features/categories/CategoryManage
 export default function ProductsPage() {
   const { products, categories, loading } = useShop()
   const [showForm,    setShowForm]    = useState(false)
+  const [editProduct, setEditProduct] = useState(null)   // product being edited
   const [showCatMgr,  setShowCatMgr]  = useState(false)
   const [visibility,  setVisibility]  = useState('all')  // 'all' | 'live' | 'hidden'
   const [activeCat,   setActiveCat]   = useState('all')
+
+  const handleAddClick = () => {
+    setEditProduct(null)
+    setShowForm(v => !v)
+  }
+
+  const handleEditProduct = (product) => {
+    setEditProduct(product)
+    setShowForm(true)
+    // Scroll to top so the form is visible
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleFormClose = () => {
+    setShowForm(false)
+    setEditProduct(null)
+  }
 
   const handleVisibilityChange = (val) => {
     setVisibility(val)
@@ -67,8 +85,8 @@ export default function ProductsPage() {
             <Button variant="secondary" onClick={() => setShowCatMgr(true)}>
               ⚙️ Categories
             </Button>
-            <Button onClick={() => setShowForm(v => !v)}>
-              {showForm ? 'Cancel' : '+ Add Product'}
+            <Button onClick={handleAddClick}>
+              {showForm && !editProduct ? 'Cancel' : '+ Add Product'}
             </Button>
           </div>
         }
@@ -76,7 +94,9 @@ export default function ProductsPage() {
 
       {showForm && (
         <ProductForm 
-          onClose={() => setShowForm(false)} 
+          key={editProduct?._id || 'new'}
+          product={editProduct}
+          onClose={handleFormClose}
           onManageCategories={() => setShowCatMgr(true)}
         />
       )}
@@ -118,7 +138,13 @@ export default function ProductsPage() {
 
       {filtered.length > 0 ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
-          {filtered.map(p => <ProductCard key={p._id} product={p} />)}
+          {filtered.map(p => (
+            <ProductCard
+              key={p._id}
+              product={p}
+              onEdit={handleEditProduct}
+            />
+          ))}
         </div>
       ) : (
         <EmptyState

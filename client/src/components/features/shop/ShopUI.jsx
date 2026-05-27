@@ -24,7 +24,12 @@ export function ShopUI({ shop, products, keywords, categories, themeId, template
         <CartDrawer
           colors={colors}
           cart={cart}
-          onRemove={(i) => setCart(c => c.filter((_, j) => j !== i))}
+          onRemove={(id) => setCart(c => {
+            const item = c.find(i => i._id === id)
+            if (!item) return c
+            if ((item.qty || 1) > 1) return c.map(i => i._id === id ? { ...i, qty: i.qty - 1 } : i)
+            return c.filter(i => i._id !== id)
+          })}
           onClose={() => setCartOpen(false)}
           onCheckout={() => { setCartOpen(false); setChatOpen(true) }}
         />
@@ -35,7 +40,24 @@ export function ShopUI({ shop, products, keywords, categories, themeId, template
           onClose={() => setChatOpen(false)}
           keywords={keywords}
           products={products}
-          onOrderComplete={async () => setCart([])}
+          shop={shop}
+          initialCart={cart}
+          onOrderComplete={async (orderData) => {
+            const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+            const res = await fetch(`${BASE}/orders/public`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ...orderData, shopSlug: shop.slug, source: 'bot' }),
+            })
+            if (!res.ok) throw new Error('Order failed')
+            // Notify seller dashboard to refresh orders instantly
+            if ('BroadcastChannel' in window) {
+              const ch = new BroadcastChannel('pasalbot_new_order')
+              ch.postMessage({ shopSlug: shop.slug })
+              ch.close()
+            }
+            setCart([])
+          }}
         />
       )}
     </>
@@ -90,10 +112,36 @@ function DefaultShopUI({ shop, products, keywords, categories, colors, cart, set
         return cat && p.category?.toLowerCase() === cat.label.toLowerCase()
       })
 
-  const addToCart  = (p) => { setCart(c => [...c, p]); setCartOpen(true) }
-  const removeItem = (i) => setCart(c => c.filter((_, j) => j !== i))
+  const addToCart = (p) => {
+    setCart(c => {
+      const existing = c.find(i => i._id === p._id)
+      if (existing) return c.map(i => i._id === p._id ? { ...i, qty: (i.qty || 1) + 1 } : i)
+      return [...c, { ...p, qty: 1 }]
+    })
+    setCartOpen(true)
+  }
+  const removeItem = (id) => setCart(c => {
+    const item = c.find(i => i._id === id)
+    if (!item) return c
+    if ((item.qty || 1) > 1) return c.map(i => i._id === id ? { ...i, qty: i.qty - 1 } : i)
+    return c.filter(i => i._id !== id)
+  })
 
-  const handleOrderComplete = async () => setCart([])
+  const handleOrderComplete = async (orderData) => {
+    const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+    const res = await fetch(`${BASE}/orders/public`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...orderData, shopSlug: shop.slug, source: 'bot' }),
+    })
+    if (!res.ok) throw new Error('Order failed')
+    if ('BroadcastChannel' in window) {
+      const ch = new BroadcastChannel('pasalbot_new_order')
+      ch.postMessage({ shopSlug: shop.slug })
+      ch.close()
+    }
+    setCart([])
+  }
   const handleCartCheckout  = () => { setCartOpen(false); setChatOpen(true) }
 
   return (
@@ -216,7 +264,7 @@ function DefaultShopUI({ shop, products, keywords, categories, colors, cart, set
           {filtered.map(p => (
             <div key={p._id} onClick={() => setSelectedProduct(p)} style={{ borderRadius:'clamp(16px,3cqw,28px)', padding:'clamp(12px,2.5cqw,16px)', background:colors.card, border:'1px solid rgba(0,0,0,0.05)', display:'flex', flexDirection:'column', gap:'clamp(8px,2cqw,12px)', boxShadow:'0 4px 20px rgba(0,0,0,0.02)', cursor:'pointer' }} className="product-card">
               {p.imageUrl
-                ? <img src={p.imageUrl} alt={p.name} style={{ width:'100%', aspectRatio:'1', objectFit:'cover', borderRadius:'clamp(12px,2.5cqw,20px)', display:'block' }} />
+                ? <img src={p.imageUrl} alt={p.name} style={{ width:'100%', aspectRatio:'1', objectFit:'contain', borderRadius:'clamp(12px,2.5cqw,20px)', display:'block', background:colors.bg }} />
                 : <div style={{ aspectRatio:'1', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'clamp(40px,10cqw,64px)', borderRadius:'clamp(12px,2.5cqw,20px)', background:colors.bg }}>{p.image}</div>
               }
               <div style={{ flex:1 }}>
@@ -261,13 +309,20 @@ function DefaultShopUI({ shop, products, keywords, categories, colors, cart, set
 
       {/* Overlays */}
       {cartOpen && <CartDrawer colors={colors} cart={cart} onRemove={removeItem} onClose={() => setCartOpen(false)} onCheckout={handleCartCheckout} />}
-      {chatOpen && <ChatDrawer colors={colors} onClose={() => setChatOpen(false)} keywords={keywords} products={products} onOrderComplete={handleOrderComplete} />}
+      {chatOpen && <ChatDrawer colors={colors} onClose={() => setChatOpen(false)} keywords={keywords} products={products} shop={shop} initialCart={cart} onOrderComplete={handleOrderComplete} />}
       {selectedProduct && (
         <ProductDetailDrawer
           product={selectedProduct}
           colors={colors}
           onClose={() => setSelectedProduct(null)}
-          onAddToCart={(p) => { setCart(c => [...c, p]); setCartOpen(true) }}
+          onAddToCart={(p) => {
+            setCart(c => {
+              const existing = c.find(i => i._id === p._id)
+              if (existing) return c.map(i => i._id === p._id ? { ...i, qty: (i.qty || 1) + 1 } : i)
+              return [...c, { ...p, qty: 1 }]
+            })
+            setCartOpen(true)
+          }}
         />
       )}
     </div>

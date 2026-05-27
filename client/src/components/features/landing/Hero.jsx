@@ -1,18 +1,16 @@
 import { useNavigate } from 'react-router-dom'
-import { useUI } from '@/context/UIContext'
 import { Button } from '@/components/ui/Button'
 import styles from './Hero.module.css'
 
 const STATS = [
-  { value: '500+',     label: 'Active Sellers'      },
-  { value: '12,000+',  label: 'Orders Processed'    },
-  { value: 'NPR 45L+', label: 'Revenue Generated'   },
-  { value: '4.9★',     label: 'Seller Rating'       },
+  { value: '2',       label: 'Live Shops Running'   },
+  { value: '5 min',   label: 'Setup Time'           },
+  { value: '100%',    label: 'Cash on Delivery'     },
+  { value: 'Free',    label: 'To Get Started'       },
 ]
 
 export function Hero() {
   const navigate = useNavigate()
-  const { openDemoShop } = useUI()
 
   return (
     <section className={styles.hero}>
@@ -22,29 +20,30 @@ export function Hero() {
 
       <div className={styles.badge}>
         <span className={styles.dot} />
-        Now live for Nepali sellers · Free 14-day trial
+        Built for Nepali sellers · No card required
       </div>
 
       <h1 className={styles.headline}>
-        Turn your DM chaos<br />
-        <span className={styles.gradient}>into a real business.</span>
+        Your shop link. Your bot.<br />
+        <span className={styles.gradient}>Your orders, sorted.</span>
       </h1>
 
       <p className={styles.sub}>
-        PasalBot is the chat-first shop platform built for Nepali sellers on Facebook &amp; Instagram.
-        Set up in 5 minutes. Sell like a pro.
+        PasalBot lets you launch a proper online shop in minutes — with a chatbot that handles
+        customer questions, a link you can share anywhere, and order tracking that actually works.
+        Built for sellers in Nepal.
       </p>
 
       <div className={styles.ctas}>
-        <Button size="lg" onClick={() => navigate('/dashboard')}>
-          Start Free Trial →
+        <Button size="lg" onClick={() => navigate('/auth')}>
+          Start Free →
         </Button>
-        <Button size="lg" variant="ghost" onClick={openDemoShop}>
-          🛍️ See Live Demo
+        <Button size="lg" variant="ghost" onClick={() => document.getElementById('live-demos')?.scrollIntoView({ behavior: 'smooth' })}>
+          🛍️ See Live Demos
         </Button>
       </div>
 
-      <p className={styles.noCard}>No credit card · No setup fee · Cancel anytime</p>
+      <p className={styles.noCard}>No credit card · No setup fee · Works on any device</p>
 
       <div className={styles.statsBar}>
         {STATS.map(({ value, label }) => (

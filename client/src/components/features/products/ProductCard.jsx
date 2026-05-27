@@ -1,7 +1,7 @@
 import { useShop } from '@/context/ShopContext'
 import { formatNPR } from '@/utils/formatters'
 
-export function ProductCard({ product }) {
+export function ProductCard({ product, onEdit }) {
   const { toggleProductVisibility, deleteProduct } = useShop()
 
   return (
@@ -59,12 +59,42 @@ export function ProductCard({ product }) {
         </span>
       </div>
 
-      <button
-        onClick={() => deleteProduct(product._id)}
-        style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)', borderRadius: 'var(--radius-sm)', padding: '5px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-body)', marginTop: 4 }}
-      >
-        Remove
-      </button>
+      {/* Action buttons */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginTop: 4 }}>
+        <button
+          onClick={() => onEdit(product)}
+          style={{
+            flex: 1,
+            background: 'transparent',
+            border: '1px solid var(--color-brand)',
+            color: 'var(--color-brand)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '5px',
+            cursor: 'pointer',
+            fontSize: 12,
+            fontWeight: 600,
+            fontFamily: 'var(--font-body)',
+          }}
+        >
+          ✏️ Edit
+        </button>
+        <button
+          onClick={() => deleteProduct(product._id)}
+          style={{
+            flex: 1,
+            background: 'transparent',
+            border: '1px solid var(--color-border)',
+            color: 'var(--color-text-muted)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '5px',
+            cursor: 'pointer',
+            fontSize: 12,
+            fontFamily: 'var(--font-body)',
+          }}
+        >
+          Remove
+        </button>
+      </div>
     </div>
   )
 }
